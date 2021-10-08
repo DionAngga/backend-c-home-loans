@@ -47,7 +47,7 @@ func (c *Cli) Run(application *app.Application) {
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	db.DbConnection.AutoMigrate(&contract.User{}, &contract.Pengajuan{})
+	db.DbConnection.AutoMigrate(&contract.User{}, &contract.Pengajuan{}, &contract.Kelengkapan{})
 
 	go listenAndServe(srv)
 	waitForShutdown(srv)
