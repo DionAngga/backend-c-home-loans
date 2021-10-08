@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -12,12 +13,12 @@ type Client interface {
 }
 
 type client struct {
-	dbConnection *gorm.DB
+	DbConnection *gorm.DB
 }
 
 func (c *client) Ping() error {
 	var result int64
-	tx := c.dbConnection.Raw("select 1").Scan(&result)
+	tx := c.DbConnection.Raw("select 1").Scan(&result)
 	if tx.Error != nil {
 		return fmt.Errorf("mysql unable to serve basic query. %v", tx.Error)
 	}
@@ -41,6 +42,6 @@ func NewMysqlClient(config ClientConfig) *client {
 		log.Fatalf("unable to initiate mysql connection. %v", err)
 	}
 	return &client{
-		dbConnection: dbConn,
+		DbConnection: dbConn,
 	}
 }

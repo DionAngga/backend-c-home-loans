@@ -10,6 +10,8 @@ import (
 	"syscall"
 
 	"github.com/rysmaadit/go-template/app"
+	"github.com/rysmaadit/go-template/contract"
+	"github.com/rysmaadit/go-template/external/mysql"
 	"github.com/rysmaadit/go-template/router"
 	"github.com/rysmaadit/go-template/service"
 	log "github.com/sirupsen/logrus"
@@ -42,6 +44,10 @@ func (c *Cli) Run(application *app.Application) {
 	}
 
 	log.Println(fmt.Sprintf("starting application { %v } on port :%v", application.Config.AppName, application.Config.AppPort))
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	db.DbConnection.AutoMigrate(&contract.User{}, &contract.Pengajuan{})
 
 	go listenAndServe(srv)
 	waitForShutdown(srv)
