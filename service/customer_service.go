@@ -23,6 +23,7 @@ type CustomerServiceInterface interface {
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	CreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan
 	CreateKelengkapan(kelengkapan *contract.Kelengkapan, id_cust uint) *contract.Kelengkapan
+	GetById_kelengkapan(id uint) interface{}
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -99,6 +100,17 @@ func (s *customerService) CreateKelengkapan(kelengkapan *contract.Kelengkapan, i
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	db.DbConnection.Create(&kelengkapan)
+
+	return kelengkapan
+}
+
+func (s *customerService) GetById_kelengkapan(id uint) interface{} {
+
+	var kelengkapan contract.Kelengkapan
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	db.DbConnection.Table("kelengkapans").First(&kelengkapan, id)
 
 	return kelengkapan
 }
