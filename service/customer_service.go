@@ -21,6 +21,7 @@ type customerService struct {
 type CustomerServiceInterface interface {
 	GetCekPengajuan(id_cust uint) interface{}
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
+	CreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -73,4 +74,16 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 	}
 
 	return resp, nil
+}
+
+func (s *customerService) CreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan {
+	pengajuan.Id_cust = id_cust
+	status := 1
+	pengajuan.Status = uint(status)
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	db.DbConnection.Create(&pengajuan)
+
+	return pengajuan
 }
