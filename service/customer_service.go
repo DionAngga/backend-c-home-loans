@@ -65,11 +65,14 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 		return nil, errors.NewUnauthorizedError("invalid payload")
 	}
 
+	id_user_uint := uint(claims["id_user"].(float64))
+	login_as_uint := uint(claims["login_as"].(float64))
+
 	resp := &contract.JWTMapClaim{
 		Authorized:     claims["authorized"].(bool),
 		RequestID:      claims["requestID"].(string),
-		Id_user:        claims["id_user"].(uint),
-		Login_as:       claims["login_as"].(uint),
+		Id_user:        id_user_uint,
+		Login_as:       login_as_uint,
 		StandardClaims: jwt.StandardClaims{},
 	}
 
