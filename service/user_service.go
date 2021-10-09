@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/rysmaadit/go-template/common/errors"
 	"github.com/rysmaadit/go-template/config"
@@ -21,7 +23,7 @@ type userService struct {
 }
 
 type UserServiceInterface interface {
-	Login(user *contract.User) (interface{}, error)
+	Login(user *contract.User) (*contract.GetTokenResponseContract, error)
 	Create(w http.ResponseWriter, r *http.Request) interface{}
 	GetToken(*contract.User) (*contract.GetTokenResponseContract, error)
 }
@@ -48,7 +50,7 @@ func (s *userService) Create(w http.ResponseWriter, r *http.Request) interface{}
 	return user
 }
 
-func (s *userService) Login(user *contract.User) (interface{}, error) {
+func (s *userService) Login(user *contract.User) (*contract.GetTokenResponseContract, error) {
 	var registeredUser *contract.User
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
@@ -75,11 +77,16 @@ func (s *userService) Login(user *contract.User) (interface{}, error) {
 }
 
 func (s *userService) GetToken(user *contract.User) (*contract.GetTokenResponseContract, error) {
+	expirationTime := time.Now().Add(time.Hour * 1)
+
 	atClaims := contract.JWTMapClaim{
 		Authorized: true,
 		RequestID:  uuid.New().String(),
 		Id_user:    user.ID,
 		Login_as:   user.Login_as,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
 	}
 
 	token, err := s.jwtClient.GenerateTokenStringWithClaims(atClaims, s.appConfig.JWTSecret) //

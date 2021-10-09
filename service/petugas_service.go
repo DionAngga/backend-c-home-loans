@@ -14,5 +14,8 @@ type PetugasServiceInterface interface {
 }
 
 func NewPetugasService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *petugasService {
-	return &petugasService{}
+	return &petugasService{
+		appConfig: appConfig,
+		jwtClient: jwtClient,
+	}
 }

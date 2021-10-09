@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/rysmaadit/go-template/common/responder"
 	"github.com/rysmaadit/go-template/contract"
@@ -33,6 +34,15 @@ func Login(userService service.UserServiceInterface) http.HandlerFunc {
 			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
 			return
 		}
+
+		expirationTime := time.Now().Add(time.Hour * 1)
+
+		http.SetCookie(w,
+			&http.Cookie{
+				Name:    "token",
+				Value:   data_service.Token,
+				Expires: expirationTime,
+			})
 
 		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
 	}
