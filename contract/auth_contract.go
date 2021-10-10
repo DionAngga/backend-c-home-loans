@@ -14,8 +14,8 @@ import (
 type JWTMapClaim struct {
 	Authorized bool   `json:"authorized"`
 	RequestID  string `json:"requestID"`
-	Id_user    uint   `json:"id_user"`
-	Login_as   uint   `json:"login_as"`
+	IdUser     uint   `json:"id_user"`
+	LoginAs    uint   `json:"login_as"`
 	jwt.StandardClaims
 }
 

@@ -29,7 +29,7 @@ func GetCekPengajuan(customerService service.CustomerServiceInterface) http.Hand
 			return
 		}
 
-		data_service := customerService.GetCekPengajuan(resp.Id_user)
+		data_service := customerService.SCGetCekPengajuan(resp.IdUser)
 
 		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
 	}
@@ -58,9 +58,9 @@ func CreatePengajuan(customerService service.CustomerServiceInterface) http.Hand
 
 		json.Unmarshal(payloads, &pengajuan)
 
-		data_service := customerService.CreatePengajuan(&pengajuan, resp.Id_user)
+		dataService := customerService.SCCreatePengajuan(&pengajuan, resp.IdUser)
 
-		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
@@ -87,13 +87,13 @@ func CreateKelengkapan(customerService service.CustomerServiceInterface) http.Ha
 		var kelengkapan contract.Kelengkapan
 		json.Unmarshal(payloads, &kelengkapan)
 
-		data_service := customerService.CreateKelengkapan(&kelengkapan, resp.Id_user)
+		dataService := customerService.SCCreateKelengkapan(&kelengkapan, resp.IdUser)
 
-		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
-func GetById_kelengkapan(customerService service.CustomerServiceInterface) http.HandlerFunc {
+func GetByIdKelengkapan(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -111,8 +111,8 @@ func GetById_kelengkapan(customerService service.CustomerServiceInterface) http.
 			return
 		}
 
-		data_service := customerService.GetById_kelengkapan(resp.Id_user)
+		dataService := customerService.SCGetByIdKelengkapan(resp.IdUser)
 
-		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }

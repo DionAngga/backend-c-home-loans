@@ -19,11 +19,11 @@ type customerService struct {
 }
 
 type CustomerServiceInterface interface {
-	GetCekPengajuan(id_cust uint) interface{}
+	SCGetCekPengajuan(id_cust uint) interface{}
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	CreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan
-	CreateKelengkapan(kelengkapan *contract.Kelengkapan, id_cust uint) *contract.Kelengkapan
-	GetById_kelengkapan(id uint) interface{}
+	SCCreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan
+	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id_cust uint) *contract.Kelengkapan
+	SCGetByIdKelengkapan(id uint) interface{}
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -33,7 +33,7 @@ func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClient
 	}
 }
 
-func (s *customerService) GetCekPengajuan(id_cust uint) interface{} {
+func (s *customerService) SCGetCekPengajuan(id_cust uint) interface{} {
 	var pengajuan contract.Pengajuan
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
@@ -73,16 +73,16 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 	resp := &contract.JWTMapClaim{
 		Authorized:     claims["authorized"].(bool),
 		RequestID:      claims["requestID"].(string),
-		Id_user:        id_user_uint,
-		Login_as:       login_as_uint,
+		IdUser:         id_user_uint,
+		LoginAs:        login_as_uint,
 		StandardClaims: jwt.StandardClaims{},
 	}
 
 	return resp, nil
 }
 
-func (s *customerService) CreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan {
-	pengajuan.Id_cust = id_cust
+func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan {
+	pengajuan.IdCust = id_cust
 	status := 1
 	pengajuan.Status = uint(status)
 
@@ -93,10 +93,10 @@ func (s *customerService) CreatePengajuan(pengajuan *contract.Pengajuan, id_cust
 	return pengajuan
 }
 
-func (s *customerService) CreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.Kelengkapan {
+func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.Kelengkapan {
 
-	kelengkapan.Id_pengajuan = id
-	kelengkapan.Status_kelengkapan = 1
+	kelengkapan.IdPengajuan = id
+	kelengkapan.StatusKelengkapan = 1
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	db.DbConnection.Create(&kelengkapan)
@@ -104,7 +104,7 @@ func (s *customerService) CreateKelengkapan(kelengkapan *contract.Kelengkapan, i
 	return kelengkapan
 }
 
-func (s *customerService) GetById_kelengkapan(id uint) interface{} {
+func (s *customerService) SCGetByIdKelengkapan(id uint) interface{} {
 
 	var kelengkapan contract.Kelengkapan
 

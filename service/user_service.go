@@ -23,8 +23,8 @@ type userService struct {
 }
 
 type UserServiceInterface interface {
-	Login(user *contract.User) (*contract.GetTokenResponseContract, error)
-	Create(w http.ResponseWriter, r *http.Request) interface{}
+	SULogin(user *contract.User) (*contract.GetTokenResponseContract, error)
+	SUCreate(w http.ResponseWriter, r *http.Request) interface{}
 	GetToken(*contract.User) (*contract.GetTokenResponseContract, error)
 }
 
@@ -35,13 +35,13 @@ func NewUserService(appConfig *config.Config, jwtClient jwt_client.JWTClientInte
 	}
 }
 
-func (s *userService) Create(w http.ResponseWriter, r *http.Request) interface{} {
+func (s *userService) SUCreate(w http.ResponseWriter, r *http.Request) interface{} {
 	payloads, _ := ioutil.ReadAll(r.Body)
 
 	var user contract.User
 	json.Unmarshal(payloads, &user)
 
-	user.Login_as = 1
+	user.LoginAs = 1
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
@@ -50,7 +50,7 @@ func (s *userService) Create(w http.ResponseWriter, r *http.Request) interface{}
 	return user
 }
 
-func (s *userService) Login(user *contract.User) (*contract.GetTokenResponseContract, error) {
+func (s *userService) SULogin(user *contract.User) (*contract.GetTokenResponseContract, error) {
 	var registeredUser *contract.User
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
@@ -65,7 +65,7 @@ func (s *userService) Login(user *contract.User) (*contract.GetTokenResponseCont
 		return nil, errors.NewUnauthorizedError("combination of username and password not match, password salah")
 	}
 
-	tk, err := s.GetToken(registeredUser) //
+	tk, err := s.GetToken(registeredUser)
 
 	if err != nil {
 		errMsg := fmt.Sprintf("error di get token: %v", err)
@@ -82,14 +82,14 @@ func (s *userService) GetToken(user *contract.User) (*contract.GetTokenResponseC
 	atClaims := contract.JWTMapClaim{
 		Authorized: true,
 		RequestID:  uuid.New().String(),
-		Id_user:    user.ID,
-		Login_as:   user.Login_as,
+		IdUser:     user.ID,
+		LoginAs:    user.LoginAs,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
 	}
 
-	token, err := s.jwtClient.GenerateTokenStringWithClaims(atClaims, s.appConfig.JWTSecret) //
+	token, err := s.jwtClient.GenerateTokenStringWithClaims(atClaims, s.appConfig.JWTSecret)
 
 	if err != nil {
 		errMsg := fmt.Sprintf("error signed JWT credentials: %v", err)

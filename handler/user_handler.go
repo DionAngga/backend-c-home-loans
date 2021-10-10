@@ -15,9 +15,9 @@ import (
 func Create(userService service.UserServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		data_service := userService.Create(w, r)
+		dataService := userService.SUCreate(w, r)
 
-		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
@@ -27,7 +27,7 @@ func Login(userService service.UserServiceInterface) http.HandlerFunc {
 		var user contract.User
 		json.Unmarshal(payloads, &user)
 
-		data_service, err := userService.Login(&user)
+		dataService, err := userService.SULogin(&user)
 
 		if err != nil {
 			log.Warning(err)
@@ -40,10 +40,10 @@ func Login(userService service.UserServiceInterface) http.HandlerFunc {
 		http.SetCookie(w,
 			&http.Cookie{
 				Name:    "token",
-				Value:   data_service.Token,
+				Value:   dataService.Token,
 				Expires: expirationTime,
 			})
 
-		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
