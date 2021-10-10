@@ -29,9 +29,9 @@ func GetCekPengajuan(customerService service.CustomerServiceInterface) http.Hand
 			return
 		}
 
-		data_service := customerService.SCGetCekPengajuan(resp.IdUser)
+		dataService := customerService.SCGetCekPengajuan(resp.IdUser)
 
-		responder.NewHttpResponse(r, w, http.StatusOK, data_service, nil)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 

@@ -39,13 +39,14 @@ func setUserRouter(router *mux.Router, dependencies service.UserServiceInterface
 }
 
 func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceInterface) {
-	router.Methods(http.MethodGet).Path("/getcekpengajuan").Handler(handler.GetCekPengajuan(dependencies))
+	router.Methods(http.MethodGet).Path("/cekpengajuan").Handler(handler.GetCekPengajuan(dependencies))
 	router.Methods(http.MethodPost).Path("/pengajuan").Handler(handler.CreatePengajuan(dependencies))
 	router.Methods(http.MethodPost).Path("/createkelengkapan").Handler(handler.CreateKelengkapan(dependencies))
 	router.Methods(http.MethodGet).Path("/kelengkapan").Handler(handler.GetByIdKelengkapan(dependencies))
 }
 
 func setPetugasRouter(router *mux.Router, dependencies service.PetugasServiceInterface) {
+	router.Methods(http.MethodGet).Path("/listpengajuan/{page}").Handler(handler.GetListPengajuan(dependencies))
 
 }
 
