@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type Kelengkapan struct {
 	gorm.Model
+	IdCust            uint   `gorm:"not null" json:"id_cust"`
 	IdPengajuan       uint   `gorm:"not null" json:"id_pengajuan"`
 	AlamatRumah       string `gorm:"not null" json:"alamat_rumah"`
 	LuasTanah         uint   `gorm:"not null" json:"luas_tanah"`

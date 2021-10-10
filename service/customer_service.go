@@ -19,10 +19,10 @@ type customerService struct {
 }
 
 type CustomerServiceInterface interface {
-	SCGetCekPengajuan(id_cust uint) interface{}
+	SCGetCekPengajuan(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SCCreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan
-	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id_cust uint) *contract.Kelengkapan
+	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.Pengajuan
+	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, idCust uint) *contract.Kelengkapan
 	SCGetByIdKelengkapan(id uint) interface{}
 }
 
@@ -33,14 +33,18 @@ func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClient
 	}
 }
 
-func (s *customerService) SCGetCekPengajuan(id_cust uint) interface{} {
+func (s *customerService) SCGetCekPengajuan(idCust uint) string {
 	var pengajuan contract.Pengajuan
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	db.DbConnection.Table("pengajuans").First(&pengajuan, id_cust)
+	err := db.DbConnection.Table("pengajuans").First(&pengajuan, "id_cust = ?", idCust).Error
 
-	return pengajuan
+	if err != nil {
+		return "Anda sedang tidak mengajukan KPR saat ini"
+	}
+
+	return "Anda sedang mengajukan KPR saat ini"
 }
 
 func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error) {
@@ -74,6 +78,7 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 		Authorized:     claims["authorized"].(bool),
 		RequestID:      claims["requestID"].(string),
 		IdUser:         id_user_uint,
+		Username:       claims["username"].(string),
 		LoginAs:        login_as_uint,
 		StandardClaims: jwt.StandardClaims{},
 	}
@@ -81,8 +86,8 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 	return resp, nil
 }
 
-func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, id_cust uint) *contract.Pengajuan {
-	pengajuan.IdCust = id_cust
+func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.Pengajuan {
+	pengajuan.IdCust = idCust
 	status := 1
 	pengajuan.Status = uint(status)
 
@@ -95,6 +100,7 @@ func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, id_cu
 
 func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.Kelengkapan {
 
+	kelengkapan.IdCust = id
 	kelengkapan.IdPengajuan = id
 	kelengkapan.StatusKelengkapan = 1
 

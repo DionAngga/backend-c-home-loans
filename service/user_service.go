@@ -83,6 +83,7 @@ func (s *userService) GetToken(user *contract.User) (*contract.GetTokenResponseC
 		Authorized: true,
 		RequestID:  uuid.New().String(),
 		IdUser:     user.ID,
+		Username:   user.Username,
 		LoginAs:    user.LoginAs,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
