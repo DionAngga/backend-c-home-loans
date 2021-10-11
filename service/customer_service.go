@@ -21,7 +21,7 @@ type customerService struct {
 type CustomerServiceInterface interface {
 	SCGetCekPengajuan(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.Pengajuan
+	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.PengajuanReturn
 	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, idCust uint) *contract.Kelengkapan
 	SCGetByIdKelengkapan(id uint) interface{}
 }
@@ -86,7 +86,7 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 	return resp, nil
 }
 
-func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.Pengajuan {
+func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.PengajuanReturn {
 	pengajuan.IdCust = idCust
 	status := 1
 	pengajuan.Status = uint(status)
@@ -95,7 +95,19 @@ func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCus
 
 	db.DbConnection.Create(&pengajuan)
 
-	return pengajuan
+	pReturn := contract.PengajuanReturn{
+		IdCust:             pengajuan.IdCust,
+		Nik:                pengajuan.Nik,
+		NamaLengkap:        pengajuan.NamaLengkap,
+		TempatLahir:        pengajuan.TempatLahir,
+		TanggalLahir:       pengajuan.TanggalLahir,
+		Alamat:             pengajuan.Alamat,
+		Pekerjaan:          pengajuan.Pekerjaan,
+		PendapatanPerbulan: pengajuan.PendapatanPerbulan,
+		BuktiKtp:           pengajuan.BuktiKtp,
+		Status:             pengajuan.Status,
+	}
+	return &pReturn
 }
 
 func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.Kelengkapan {

@@ -31,9 +31,6 @@ func NewPetugasService(appConfig *config.Config, jwtClient jwt_client.JWTClientI
 }
 
 func (s *petugasService) SPGetListPengajuan(page string) (interface{}, error) {
-	var pengajuan contract.Pengajuan
-	var kelengkapan contract.Kelengkapan
-
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
 	pages, err := strconv.Atoi(page)
@@ -44,23 +41,36 @@ func (s *petugasService) SPGetListPengajuan(page string) (interface{}, error) {
 
 	var listPengajuan []contract.ListPengajuan
 
-	for i := ((5 * pages) - 4); i < ((5 * pages) + 1); i++ {
-		err := db.DbConnection.Table("pengajuans").First(&pengajuan, "ID = ?", i).Error
+	for i := ((5 * pages) - 2); i < ((5 * pages) + 3); i++ {
+		var pengajuan contract.Pengajuan
+		var kelengkapan contract.Kelengkapan
+
+		err := db.DbConnection.Table("pengajuans").Where("id_cust = ?", i).Find(&pengajuan).Error
+		if pengajuan.IdCust == 0 {
+			break
+		}
 		if err != nil {
 			break
 		}
 
 		er := db.DbConnection.Table("kelengkapans").Last(&kelengkapan, "id_cust = ?", pengajuan.IdCust).Error
 		if er != nil {
-			break
+			lpengajuan := contract.ListPengajuan{
+				TanggalPengajuan: pengajuan.UpdatedAt,
+				NamaLengkap:      pengajuan.NamaLengkap,
+				Status:           pengajuan.Status,
+				Rekomendasi:      "-",
+			}
+			listPengajuan = append(listPengajuan, lpengajuan)
+		} else {
+			lpengajuan := contract.ListPengajuan{
+				TanggalPengajuan: kelengkapan.UpdatedAt,
+				NamaLengkap:      pengajuan.NamaLengkap,
+				Status:           pengajuan.Status,
+				Rekomendasi:      Recommendation(&pengajuan, &kelengkapan),
+			}
+			listPengajuan = append(listPengajuan, lpengajuan)
 		}
-		lpengajuan := contract.ListPengajuan{
-			TanggalPengajuan: pengajuan.UpdatedAt,
-			NamaLengkap:      pengajuan.NamaLengkap,
-			Status:           pengajuan.Status,
-			Rekomendasi:      Recommendation(&pengajuan, &kelengkapan),
-		}
-		listPengajuan = append(listPengajuan, lpengajuan)
 	}
 	return listPengajuan, nil
 }

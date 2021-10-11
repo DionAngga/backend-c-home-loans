@@ -34,8 +34,8 @@ func setCheckRouter(router *mux.Router, checkService service.CheckService) {
 }
 
 func setUserRouter(router *mux.Router, dependencies service.UserServiceInterface) {
-	router.Methods(http.MethodPost).Path("/login").Handler(handler.Login(dependencies))
 	router.Methods(http.MethodPost).Path("/signup").Handler(handler.Create(dependencies))
+	router.Methods(http.MethodPost).Path("/login").Handler(handler.Login(dependencies))
 }
 
 func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceInterface) {
