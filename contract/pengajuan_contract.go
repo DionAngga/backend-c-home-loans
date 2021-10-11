@@ -39,3 +39,7 @@ type PengajuanReturn struct {
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp"`
 	Status             uint    `gorm:"not null" json:"status"`
 }
+
+type PengajuanPage struct {
+	CountPage int64 `json:"count_page"`
+}

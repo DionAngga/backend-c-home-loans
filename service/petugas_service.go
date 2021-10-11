@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,7 +20,9 @@ type petugasService struct {
 }
 
 type PetugasServiceInterface interface {
-	SPGetListPengajuan(page string) (interface{}, error)
+	SPGetListPengajuan(page string) (*[]contract.ListPengajuan, error)
+	SPGetListByName(name string) *[]contract.ListPengajuan
+	SPGetCountPage() *contract.PengajuanPage
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 }
 
@@ -30,7 +33,7 @@ func NewPetugasService(appConfig *config.Config, jwtClient jwt_client.JWTClientI
 	}
 }
 
-func (s *petugasService) SPGetListPengajuan(page string) (interface{}, error) {
+func (s *petugasService) SPGetListPengajuan(page string) (*[]contract.ListPengajuan, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
 	pages, err := strconv.Atoi(page)
@@ -72,7 +75,7 @@ func (s *petugasService) SPGetListPengajuan(page string) (interface{}, error) {
 			listPengajuan = append(listPengajuan, lpengajuan)
 		}
 	}
-	return listPengajuan, nil
+	return &listPengajuan, nil
 }
 
 func Recommendation(pengajuan *contract.Pengajuan, kelengkapan *contract.Kelengkapan) string {
@@ -123,4 +126,49 @@ func (s *petugasService) VerifyToken(req *contract.ValidateTokenRequestContract)
 	}
 
 	return resp, nil
+}
+
+func (s *petugasService) SPGetCountPage() *contract.PengajuanPage {
+	var countPage int64
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	db.DbConnection.Table("pengajuans").Count(&countPage)
+
+	count := contract.PengajuanPage{
+		CountPage: int64(math.Ceil(float64(countPage) / 5.00)),
+	}
+	return &count
+}
+
+func (s *petugasService) SPGetListByName(name string) *[]contract.ListPengajuan {
+	var pengajuan []contract.Pengajuan
+	var listPengajuan []contract.ListPengajuan
+	var kelengkapan contract.Kelengkapan
+
+	namePersen := fmt.Sprint("%" + name + "%")
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+	db.DbConnection.Table("pengajuans").Where("nama_lengkap LIKE ?", namePersen).Find(&pengajuan)
+
+	for _, v := range pengajuan {
+		er := db.DbConnection.Table("kelengkapans").Last(&kelengkapan, "id_cust = ?", v.IdCust).Error
+		if er != nil {
+			lpengajuan := contract.ListPengajuan{
+				TanggalPengajuan: v.UpdatedAt,
+				NamaLengkap:      v.NamaLengkap,
+				Status:           v.Status,
+				Rekomendasi:      "-",
+			}
+			listPengajuan = append(listPengajuan, lpengajuan)
+		} else {
+			lpengajuan := contract.ListPengajuan{
+				TanggalPengajuan: kelengkapan.UpdatedAt,
+				NamaLengkap:      v.NamaLengkap,
+				Status:           v.Status,
+				Rekomendasi:      Recommendation(&v, &kelengkapan),
+			}
+			listPengajuan = append(listPengajuan, lpengajuan)
+		}
+	}
+	return &listPengajuan
 }

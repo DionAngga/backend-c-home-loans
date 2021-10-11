@@ -47,7 +47,8 @@ func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceI
 
 func setPetugasRouter(router *mux.Router, dependencies service.PetugasServiceInterface) {
 	router.Methods(http.MethodGet).Path("/listpengajuan/{page}").Handler(handler.GetListPengajuan(dependencies))
-
+	router.Methods(http.MethodGet).Path("/countpage").Handler(handler.GetCountPage(dependencies))
+	router.Methods(http.MethodGet).Path("/searchbyname/{name}").Handler(handler.GetListByName(dependencies))
 }
 
 // package router
