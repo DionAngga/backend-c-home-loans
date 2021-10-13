@@ -38,7 +38,6 @@ func (s *userService) SUCreate(user *contract.User) interface{} {
 	user.LoginAs = 1
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-	//user.Password = HashPassword(user.Password)
 	password := user.Password
 	hash, _ := HashPassword(password)
 	user.Password = hash
