@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/go-playground/validator"
 	"github.com/rysmaadit/go-template/common/responder"
 	"github.com/rysmaadit/go-template/contract"
 	"github.com/rysmaadit/go-template/service"
@@ -58,7 +59,21 @@ func CreatePengajuan(customerService service.CustomerServiceInterface) http.Hand
 
 		json.Unmarshal(payloads, &pengajuan)
 
-		dataService := customerService.SCCreatePengajuan(&pengajuan, resp.IdUser)
+		validate := validator.New()
+		error := validate.Struct(pengajuan)
+
+		if error != nil {
+			log.Warning(error)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, error)
+			return
+		}
+
+		dataService, err := customerService.SCCreatePengajuan(&pengajuan, resp.IdUser)
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
@@ -111,7 +126,12 @@ func GetByIdKelengkapan(customerService service.CustomerServiceInterface) http.H
 			return
 		}
 
-		dataService := customerService.SCGetByIdKelengkapan(resp.IdUser)
+		dataService, err := customerService.SCGetByIdKelengkapan(resp.IdUser)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}

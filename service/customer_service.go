@@ -21,9 +21,9 @@ type customerService struct {
 type CustomerServiceInterface interface {
 	SCGetCekPengajuan(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.PengajuanReturn
+	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error)
 	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, idCust uint) *contract.Kelengkapan
-	SCGetByIdKelengkapan(id uint) interface{}
+	SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error)
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -86,14 +86,17 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 	return resp, nil
 }
 
-func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) *contract.PengajuanReturn {
+func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error) {
 	pengajuan.IdCust = idCust
 	status := 1
 	pengajuan.Status = uint(status)
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	db.DbConnection.Create(&pengajuan)
+	err := db.DbConnection.Create(&pengajuan).Error
+	if err != nil {
+		log.Error("error connect db, %q", err)
+	}
 
 	pReturn := contract.PengajuanReturn{
 		IdCust:             pengajuan.IdCust,
@@ -107,7 +110,7 @@ func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCus
 		BuktiKtp:           pengajuan.BuktiKtp,
 		Status:             pengajuan.Status,
 	}
-	return &pReturn
+	return &pReturn, nil
 }
 
 func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.Kelengkapan {
@@ -122,13 +125,15 @@ func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan,
 	return kelengkapan
 }
 
-func (s *customerService) SCGetByIdKelengkapan(id uint) interface{} {
+func (s *customerService) SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error) {
 
-	var kelengkapan contract.Kelengkapan
+	var getkelengkapan contract.Kelengkapan
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	db.DbConnection.Table("kelengkapans").First(&kelengkapan, id)
-
-	return kelengkapan
+	err := db.DbConnection.Table("kelengkapans").Last(&getkelengkapan, "id_pengajuan = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &getkelengkapan, nil
 }
