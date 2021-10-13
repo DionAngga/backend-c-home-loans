@@ -40,7 +40,11 @@ func (s *userService) SUCreate(user *contract.User) interface{} {
 
 	db.DbConnection.Create(&user)
 
-	return user
+	uReturn := contract.UserReturn{
+		Username: user.Username,
+		LoginAs:  user.LoginAs,
+	}
+	return &uReturn
 }
 
 func (s *userService) SULogin(user *contract.User) (*contract.GetTokenResponseContract, error) {
