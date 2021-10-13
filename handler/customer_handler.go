@@ -102,9 +102,19 @@ func CreateKelengkapan(customerService service.CustomerServiceInterface) http.Ha
 		var kelengkapan contract.Kelengkapan
 		json.Unmarshal(payloads, &kelengkapan)
 
-		dataService := customerService.SCCreateKelengkapan(&kelengkapan, resp.IdUser)
+		validate := validator.New()
+		error := validate.Struct(kelengkapan)
 
+		if error != nil {
+			log.Warning(error)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, error)
+			return
+		}
+
+		dataService := customerService.SCCreateKelengkapan(&kelengkapan, resp.IdUser)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+		return
+
 	}
 }
 

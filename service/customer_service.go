@@ -22,7 +22,7 @@ type CustomerServiceInterface interface {
 	SCGetCekPengajuan(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error)
-	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, idCust uint) *contract.Kelengkapan
+	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.KelengkapanReturn
 	SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error)
 }
 
@@ -113,16 +113,27 @@ func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCus
 	return &pReturn, nil
 }
 
-func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.Kelengkapan {
+func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.KelengkapanReturn {
 
 	kelengkapan.IdCust = id
 	kelengkapan.IdPengajuan = id
-	kelengkapan.StatusKelengkapan = 1
+	kelengkapan.StatusKelengkapan = "Waiting"
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	db.DbConnection.Create(&kelengkapan)
 
-	return kelengkapan
+	kReturn := contract.KelengkapanReturn{
+		IdCust:            kelengkapan.IdCust,
+		IdPengajuan:       kelengkapan.IdPengajuan,
+		AlamatRumah:       kelengkapan.AlamatRumah,
+		LuasTanah:         kelengkapan.LuasTanah,
+		HargaRumah:        kelengkapan.HargaRumah,
+		JangkaPembayaran:  kelengkapan.JangkaPembayaran,
+		DokumenPendukung:  kelengkapan.DokumenPendukung,
+		StatusKelengkapan: kelengkapan.StatusKelengkapan,
+	}
+	return &kReturn
+
 }
 
 func (s *customerService) SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error) {

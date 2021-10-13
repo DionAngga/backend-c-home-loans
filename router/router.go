@@ -50,6 +50,7 @@ func setPetugasRouter(router *mux.Router, dependencies service.PetugasServiceInt
 	router.Methods(http.MethodGet).Path("/countpage").Handler(handler.GetCountPage(dependencies))
 	router.Methods(http.MethodGet).Path("/searchbyname/{name}").Handler(handler.GetListByName(dependencies))
 	router.Methods(http.MethodGet).Path("/kelengkapan/{id}").Handler(handler.GetSubmission(dependencies))
+	router.Methods(http.MethodPost).Path("/kelengkapan/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
 }
 
 // package router

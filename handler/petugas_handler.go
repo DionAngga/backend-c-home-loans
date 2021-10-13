@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -147,6 +149,56 @@ func GetSubmission(petugasService service.PetugasServiceInterface) http.HandlerF
 		}
 
 		dataService, err := petugasService.SPGetSubmission(uint(subIdint))
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func PostSubmissionStatus(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := petugasService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		subId := vars["id_cust"]
+
+		subIdint, err := strconv.Atoi(subId)
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		payloads, _ := ioutil.ReadAll(r.Body)
+		var statusKelengkapan contract.Kelengkapan
+		json.Unmarshal(payloads, &statusKelengkapan)
+
+		dataService, err := petugasService.SPPostSubmissionStatus(&statusKelengkapan, uint(subIdint))
 
 		if err != nil {
 			log.Error(err)
