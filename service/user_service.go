@@ -1,10 +1,7 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,7 +21,7 @@ type userService struct {
 
 type UserServiceInterface interface {
 	SULogin(user *contract.User) (*contract.GetTokenResponseContract, error)
-	SUCreate(w http.ResponseWriter, r *http.Request) interface{}
+	SUCreate(user *contract.User) interface{}
 	GetToken(*contract.User) (*contract.GetTokenResponseContract, error)
 }
 
@@ -35,11 +32,7 @@ func NewUserService(appConfig *config.Config, jwtClient jwt_client.JWTClientInte
 	}
 }
 
-func (s *userService) SUCreate(w http.ResponseWriter, r *http.Request) interface{} {
-	payloads, _ := ioutil.ReadAll(r.Body)
-
-	var user contract.User
-	json.Unmarshal(payloads, &user)
+func (s *userService) SUCreate(user *contract.User) interface{} {
 
 	user.LoginAs = 1
 
@@ -55,7 +48,11 @@ func (s *userService) SULogin(user *contract.User) (*contract.GetTokenResponseCo
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	db.DbConnection.Table("users").First(&registeredUser, "username = ?", user.Username)
+	err := db.DbConnection.Table("users").First(&registeredUser, "username = ?", user.Username).Error
+
+	if err != nil {
+		return nil, errors.NewUnauthorizedError("error when accessing database")
+	}
 
 	if user.Username != registeredUser.Username {
 		return nil, errors.NewUnauthorizedError("combination of username and password not match, username tidak ada")
