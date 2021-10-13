@@ -12,6 +12,7 @@ import (
 	"github.com/rysmaadit/go-template/external/jwt_client"
 	"github.com/rysmaadit/go-template/external/mysql"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
@@ -37,7 +38,10 @@ func (s *userService) SUCreate(user *contract.User) interface{} {
 	user.LoginAs = 1
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-
+	//user.Password = HashPassword(user.Password)
+	password := user.Password
+	hash, _ := HashPassword(password)
+	user.Password = hash
 	db.DbConnection.Create(&user)
 
 	uReturn := contract.UserReturn{
@@ -100,4 +104,9 @@ func (s *userService) GetToken(user *contract.User) (*contract.GetTokenResponseC
 	}
 
 	return &contract.GetTokenResponseContract{Token: token}, err
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
