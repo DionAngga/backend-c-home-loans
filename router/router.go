@@ -42,6 +42,7 @@ func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceI
 	router.Methods(http.MethodGet).Path("/checkapply").Handler(handler.GetCheckApply(dependencies))
 	router.Methods(http.MethodPost).Path("/createidentity").Handler(handler.CreateIdentity(dependencies))
 	router.Methods(http.MethodPost).Path("/createsubmission").Handler(handler.CreateSubmission(dependencies))
+  router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetStatusByIdStatus(dependencies))
 	router.Methods(http.MethodGet).Path("/getsubmission").Handler(handler.GetSubmissionCustomer(dependencies))
 }
 
@@ -51,6 +52,7 @@ func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceI
 	router.Methods(http.MethodGet).Path("/searchbyname/{name}").Handler(handler.GetListByName(dependencies))
 	router.Methods(http.MethodGet).Path("/submission/{id}").Handler(handler.GetSubmissionEmployee(dependencies))
 	router.Methods(http.MethodPost).Path("submission/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
+	router.Methods(http.MethodPost).Path("/identity/status/{id_cust}").Handler(handler.PostIdentityStatus(dependencies))
 }
 
 // package router

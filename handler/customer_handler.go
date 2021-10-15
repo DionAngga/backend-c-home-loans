@@ -146,3 +146,26 @@ func GetSubmissionCustomer(customerService service.CustomerServiceInterface) htt
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
+
+func GetStatusByIdStatus(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		dataService := customerService.SCGetStatusByIdSubmission(resp.IdUser)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
