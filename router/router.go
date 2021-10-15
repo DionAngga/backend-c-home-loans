@@ -39,11 +39,10 @@ func setUserRouter(router *mux.Router, dependencies service.UserServiceInterface
 }
 
 func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceInterface) {
-
-	router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetStatusByIdStatus(dependencies))
 	router.Methods(http.MethodGet).Path("/checkapply").Handler(handler.GetCheckApply(dependencies))
 	router.Methods(http.MethodPost).Path("/createidentity").Handler(handler.CreateIdentity(dependencies))
 	router.Methods(http.MethodPost).Path("/createsubmission").Handler(handler.CreateSubmission(dependencies))
+  router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetStatusByIdStatus(dependencies))
 	router.Methods(http.MethodGet).Path("/getsubmission").Handler(handler.GetSubmissionCustomer(dependencies))
 }
 

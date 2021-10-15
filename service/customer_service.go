@@ -21,10 +21,10 @@ type customerService struct {
 type CustomerServiceInterface interface {
 	SCGetCheckApply(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SCGetByIdKelengkapan(id uint) (*contract.Submission, error)
-	SCGetStatusByIdSubmission(id uint) string
+
 	SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error)
 	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
+  SCGetSubmissionStatus(id uint) string
 	SCGetSubmission(id uint) (*contract.Submission, error)
 }
 
@@ -150,13 +150,13 @@ func (s *customerService) SCGetSubmission(id uint) (*contract.Submission, error)
 	return &getSubmission, nil
 }
 
-func (s *customerService) SCGetStatusByIdKelengkapan(id uint) string {
+func (s *customerService) SCGetSubmissionStatus(id uint) string {
 
-	var getStatusKelengkapan contract.Submission //db
+	var getStatusKelengkapan contract.Submission
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Table("kelengkapans").Last(&getStatusKelengkapan, "id_pengajuan = ?", id).Error
+	err := db.DbConnection.Table("submissions").Last(&getStatusKelengkapan, "id_pengajuan = ?", id).Error
 
 	if err != nil {
 

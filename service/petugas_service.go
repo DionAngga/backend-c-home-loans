@@ -25,9 +25,8 @@ type EmployeeServiceInterface interface {
 	SPGetNumberOfPage() *contract.NumberOfPage
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	SPGetSubmission(id uint) (*contract.Submission, error)
-	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
-	SPGetSubmissionEmployee(id uint) (*contract.Submission, error)
 	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
+  SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -210,9 +209,9 @@ func (s *employeeService) SPPostSubmissionStatus(submissionStatus *contract.Subm
 func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	var pengajuanUpdates contract.Identity           //rbody
-	pengajuanUpdates.Status = statusPengajuan.Status //bridge rbody-db
-	var pengajuan contract.Identity                  //db
+	var pengajuanUpdates contract.Identity
+	pengajuanUpdates.Status = statusPengajuan.Status
+	var pengajuan contract.Identity 
 	err := db.DbConnection.Table("pengajuans").Last(&pengajuan, "id_cust = ?", id).Error
 	if err != nil {
 		return nil, err
