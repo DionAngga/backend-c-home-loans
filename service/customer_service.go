@@ -19,12 +19,13 @@ type customerService struct {
 }
 
 type CustomerServiceInterface interface {
-	SCGetCekPengajuan(idCust uint) string
+	SCGetCheckApply(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error)
-	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.KelengkapanReturn
-	SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error)
-	SCGetStatusByIdKelengkapan(id uint) string
+	SCGetByIdKelengkapan(id uint) (*contract.Submission, error)
+	SCGetStatusByIdSubmission(id uint) string
+	SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error)
+	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
+	SCGetSubmission(id uint) (*contract.Submission, error)
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -34,12 +35,12 @@ func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClient
 	}
 }
 
-func (s *customerService) SCGetCekPengajuan(idCust uint) string {
-	var pengajuan contract.Pengajuan
+func (s *customerService) SCGetCheckApply(idCust uint) string {
+	var identity contract.Identity
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Table("pengajuans").First(&pengajuan, "id_cust = ?", idCust).Error
+	err := db.DbConnection.Table("identities").First(&identity, "id_cust = ?", idCust).Error
 
 	if err != nil {
 		return "Anda sedang tidak mengajukan KPR saat ini"
@@ -87,72 +88,71 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 	return resp, nil
 }
 
-func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error) {
-	pengajuan.IdCust = idCust
-	// status := 1
-	pengajuan.Status = "Waiting"
+func (s *customerService) SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error) {
+	identity.IdCust = idCust
+	identity.Status = "Menunggu Verifikasi"
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Create(&pengajuan).Error
+	err := db.DbConnection.Create(&identity).Error
 	if err != nil {
 		log.Error("error connect db, %q", err)
 	}
 
-	pReturn := contract.PengajuanReturn{
-		IdCust:             pengajuan.IdCust,
-		Nik:                pengajuan.Nik,
-		NamaLengkap:        pengajuan.NamaLengkap,
-		TempatLahir:        pengajuan.TempatLahir,
-		TanggalLahir:       pengajuan.TanggalLahir,
-		Alamat:             pengajuan.Alamat,
-		Pekerjaan:          pengajuan.Pekerjaan,
-		PendapatanPerbulan: pengajuan.PendapatanPerbulan,
-		BuktiKtp:           pengajuan.BuktiKtp,
-		Status:             pengajuan.Status,
+	pReturn := contract.IdentityReturn{
+		IdCust:             identity.IdCust,
+		Nik:                identity.Nik,
+		NamaLengkap:        identity.NamaLengkap,
+		TempatLahir:        identity.TempatLahir,
+		TanggalLahir:       identity.TanggalLahir,
+		Alamat:             identity.Alamat,
+		Pekerjaan:          identity.Pekerjaan,
+		PendapatanPerbulan: identity.PendapatanPerbulan,
+		BuktiKtp:           identity.BuktiKtp,
+		Status:             identity.Status,
 	}
 	return &pReturn, nil
 }
 
-func (s *customerService) SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.KelengkapanReturn {
+func (s *customerService) SCCreateSubmission(submission *contract.Submission, id uint) *contract.SubmissionReturn {
 
-	kelengkapan.IdCust = id
-	kelengkapan.IdPengajuan = id
-	kelengkapan.StatusKelengkapan = "Waiting"
+	submission.IdCust = id
+	submission.IdPengajuan = id
+	submission.StatusKelengkapan = "Menunggu Persetujuan"
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-	db.DbConnection.Create(&kelengkapan)
+	db.DbConnection.Create(&submission)
 
-	kReturn := contract.KelengkapanReturn{
-		IdCust:            kelengkapan.IdCust,
-		IdPengajuan:       kelengkapan.IdPengajuan,
-		AlamatRumah:       kelengkapan.AlamatRumah,
-		LuasTanah:         kelengkapan.LuasTanah,
-		HargaRumah:        kelengkapan.HargaRumah,
-		JangkaPembayaran:  kelengkapan.JangkaPembayaran,
-		DokumenPendukung:  kelengkapan.DokumenPendukung,
-		StatusKelengkapan: kelengkapan.StatusKelengkapan,
+	kReturn := contract.SubmissionReturn{
+		IdCust:            submission.IdCust,
+		IdPengajuan:       submission.IdPengajuan,
+		AlamatRumah:       submission.AlamatRumah,
+		LuasTanah:         submission.LuasTanah,
+		HargaRumah:        submission.HargaRumah,
+		JangkaPembayaran:  submission.JangkaPembayaran,
+		DokumenPendukung:  submission.DokumenPendukung,
+		StatusKelengkapan: submission.StatusKelengkapan,
 	}
 	return &kReturn
 
 }
 
-func (s *customerService) SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error) {
+func (s *customerService) SCGetSubmission(id uint) (*contract.Submission, error) {
 
-	var getkelengkapan contract.Kelengkapan
+	var getSubmission contract.Submission
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Table("kelengkapans").Last(&getkelengkapan, "id_pengajuan = ?", id).Error
+	err := db.DbConnection.Table("submissions").Last(&getSubmission, "id_pengajuan = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &getkelengkapan, nil
+	return &getSubmission, nil
 }
 
 func (s *customerService) SCGetStatusByIdKelengkapan(id uint) string {
 
-	var getStatusKelengkapan contract.Kelengkapan //db
+	var getStatusKelengkapan contract.Submission //db
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 

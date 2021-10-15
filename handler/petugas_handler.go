@@ -13,7 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetListPengajuan(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+func GetListSubmission(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		page := vars["page"]
@@ -26,7 +26,7 @@ func GetListPengajuan(petugasService service.PetugasServiceInterface) http.Handl
 			return
 		}
 
-		resp, err := petugasService.VerifyToken(tokenC)
+		resp, err := employeeService.VerifyToken(tokenC)
 
 		if err != nil {
 			log.Error(err)
@@ -40,7 +40,7 @@ func GetListPengajuan(petugasService service.PetugasServiceInterface) http.Handl
 			return
 		}
 
-		dataService, err := petugasService.SPGetListPengajuan(page)
+		dataService, err := employeeService.SPGetListSubmission(page)
 
 		if err != nil {
 			log.Error(err)
@@ -52,7 +52,7 @@ func GetListPengajuan(petugasService service.PetugasServiceInterface) http.Handl
 	}
 }
 
-func GetCountPage(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+func GetNumberOfPage(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -62,7 +62,7 @@ func GetCountPage(petugasService service.PetugasServiceInterface) http.HandlerFu
 			return
 		}
 
-		resp, err := petugasService.VerifyToken(tokenC)
+		resp, err := employeeService.VerifyToken(tokenC)
 
 		if err != nil {
 			log.Error(err)
@@ -76,13 +76,13 @@ func GetCountPage(petugasService service.PetugasServiceInterface) http.HandlerFu
 			return
 		}
 
-		dataService := petugasService.SPGetCountPage()
+		dataService := employeeService.SPGetNumberOfPage()
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
-func GetListByName(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+func GetListByName(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		name := vars["name"]
@@ -94,7 +94,7 @@ func GetListByName(petugasService service.PetugasServiceInterface) http.HandlerF
 			return
 		}
 
-		resp, err := petugasService.VerifyToken(tokenC)
+		resp, err := employeeService.VerifyToken(tokenC)
 
 		if err != nil {
 			log.Error(err)
@@ -108,13 +108,13 @@ func GetListByName(petugasService service.PetugasServiceInterface) http.HandlerF
 			return
 		}
 
-		dataService := petugasService.SPGetListByName(name)
+		dataService := employeeService.SPGetListByName(name)
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
-func GetSubmission(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+func GetSubmissionEmployee(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -124,7 +124,7 @@ func GetSubmission(petugasService service.PetugasServiceInterface) http.HandlerF
 			return
 		}
 
-		resp, err := petugasService.VerifyToken(tokenC)
+		resp, err := employeeService.VerifyToken(tokenC)
 
 		if err != nil {
 			log.Error(err)
@@ -141,14 +141,14 @@ func GetSubmission(petugasService service.PetugasServiceInterface) http.HandlerF
 		vars := mux.Vars(r)
 		custId := vars["id"]
 
-		custIdint, err := strconv.Atoi(custId)
+		subIdint, err := strconv.Atoi(custId)
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
 			return
 		}
 
-		dataService, err := petugasService.SPGetSubmission(uint(custIdint))
+		dataService, err := employeeService.SPGetSubmissionEmployee(uint(subIdint))
 
 		if err != nil {
 			log.Error(err)
@@ -160,7 +160,7 @@ func GetSubmission(petugasService service.PetugasServiceInterface) http.HandlerF
 	}
 }
 
-func PostSubmissionStatus(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+func PostSubmissionStatus(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -170,7 +170,7 @@ func PostSubmissionStatus(petugasService service.PetugasServiceInterface) http.H
 			return
 		}
 
-		resp, err := petugasService.VerifyToken(tokenC)
+		resp, err := employeeService.VerifyToken(tokenC)
 
 		if err != nil {
 			log.Error(err)
@@ -195,10 +195,10 @@ func PostSubmissionStatus(petugasService service.PetugasServiceInterface) http.H
 		}
 
 		payloads, _ := ioutil.ReadAll(r.Body)
-		var statusKelengkapan contract.Kelengkapan
-		json.Unmarshal(payloads, &statusKelengkapan)
+		var statusSubmission contract.Submission
+		json.Unmarshal(payloads, &statusSubmission)
 
-		dataService, err := petugasService.SPPostSubmissionStatus(&statusKelengkapan, uint(subIdint))
+		dataService, err := employeeService.SPPostSubmissionStatus(&statusSubmission, uint(subIdint))
 
 		if err != nil {
 			log.Error(err)
@@ -210,7 +210,7 @@ func PostSubmissionStatus(petugasService service.PetugasServiceInterface) http.H
 	}
 }
 
-func PostIdentityStatus(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+func PostIdentityStatus(petugasService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -245,7 +245,7 @@ func PostIdentityStatus(petugasService service.PetugasServiceInterface) http.Han
 		}
 
 		payloads, _ := ioutil.ReadAll(r.Body)
-		var statusDataDIri contract.Pengajuan
+		var statusDataDIri contract.Identity
 		json.Unmarshal(payloads, &statusDataDIri)
 
 		dataService, err := petugasService.SPPostIdentityStatus(&statusDataDIri, uint(custIdint))

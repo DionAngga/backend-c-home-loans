@@ -11,7 +11,7 @@ type Dependencies struct {
 	CheckService    CheckService
 	UserService     UserServiceInterface
 	CustomerService CustomerServiceInterface
-	PetugasService  PetugasServiceInterface
+	EmployeeService EmployeeServiceInterface
 }
 
 func InstantiateDependencies(application *app.Application) Dependencies {
@@ -27,14 +27,14 @@ func InstantiateDependencies(application *app.Application) Dependencies {
 	checkService := NewCheckService(mysqlClient)
 	userService := NewUserService(application.Config, jwtWrapper)
 	customerService := NewCustomerService(application.Config, jwtWrapper)
-	petugasService := NewPetugasService(application.Config, jwtWrapper)
+	employeeService := NewEmployeeService(application.Config, jwtWrapper)
 
 	return Dependencies{
 		AuthService:     authService,
 		CheckService:    checkService,
 		UserService:     userService,
 		CustomerService: customerService,
-		PetugasService:  petugasService,
+		EmployeeService: employeeService,
 	}
 }
 

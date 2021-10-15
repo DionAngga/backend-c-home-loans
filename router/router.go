@@ -18,7 +18,7 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 	setCheckRouter(r, dependencies.CheckService)
 	setUserRouter(r, dependencies.UserService)
 	setCustomerRouter(r, dependencies.CustomerService)
-	setPetugasRouter(r, dependencies.PetugasService)
+	setEmployeeRouter(r, dependencies.EmployeeService)
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	return loggedRouter
@@ -39,20 +39,21 @@ func setUserRouter(router *mux.Router, dependencies service.UserServiceInterface
 }
 
 func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceInterface) {
-	router.Methods(http.MethodGet).Path("/cekpengajuan").Handler(handler.GetCekPengajuan(dependencies))
-	router.Methods(http.MethodPost).Path("/pengajuan").Handler(handler.CreatePengajuan(dependencies))
-	router.Methods(http.MethodPost).Path("/createkelengkapan").Handler(handler.CreateKelengkapan(dependencies))
-	router.Methods(http.MethodGet).Path("/kelengkapan").Handler(handler.GetByIdKelengkapan(dependencies))
-	router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetStatusByIdKelengkapan(dependencies))
+
+	router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetStatusByIdStatus(dependencies))
+	router.Methods(http.MethodGet).Path("/checkapply").Handler(handler.GetCheckApply(dependencies))
+	router.Methods(http.MethodPost).Path("/createidentity").Handler(handler.CreateIdentity(dependencies))
+	router.Methods(http.MethodPost).Path("/createsubmission").Handler(handler.CreateSubmission(dependencies))
+	router.Methods(http.MethodGet).Path("/getsubmission").Handler(handler.GetSubmissionCustomer(dependencies))
 }
 
-func setPetugasRouter(router *mux.Router, dependencies service.PetugasServiceInterface) {
-	router.Methods(http.MethodGet).Path("/listpengajuan/{page}").Handler(handler.GetListPengajuan(dependencies))
-	router.Methods(http.MethodGet).Path("/countpage").Handler(handler.GetCountPage(dependencies))
+func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceInterface) {
+	router.Methods(http.MethodGet).Path("/numberofpage").Handler(handler.GetNumberOfPage(dependencies))
+	router.Methods(http.MethodGet).Path("/listsubmission/{page}").Handler(handler.GetListSubmission(dependencies))
 	router.Methods(http.MethodGet).Path("/searchbyname/{name}").Handler(handler.GetListByName(dependencies))
-	router.Methods(http.MethodGet).Path("/kelengkapan/{id}").Handler(handler.GetSubmission(dependencies))
-	router.Methods(http.MethodPost).Path("/kelengkapan/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
-	router.Methods(http.MethodPost).Path("/datadiri/status/{id_cust}").Handler(handler.PostIdentityStatus(dependencies))
+	router.Methods(http.MethodGet).Path("/submission/{id}").Handler(handler.GetSubmissionEmployee(dependencies))
+	router.Methods(http.MethodPost).Path("submission/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
+	router.Methods(http.MethodPost).Path("/identity/status/{id_cust}").Handler(handler.PostIdentityStatus(dependencies))
 }
 
 // package router
