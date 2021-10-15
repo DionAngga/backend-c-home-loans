@@ -24,6 +24,7 @@ type CustomerServiceInterface interface {
 	SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error)
 	SCCreateKelengkapan(kelengkapan *contract.Kelengkapan, id uint) *contract.KelengkapanReturn
 	SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, error)
+	SCGetStatusByIdKelengkapan(id uint) string
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -88,8 +89,8 @@ func (s *customerService) VerifyToken(req *contract.ValidateTokenRequestContract
 
 func (s *customerService) SCCreatePengajuan(pengajuan *contract.Pengajuan, idCust uint) (*contract.PengajuanReturn, error) {
 	pengajuan.IdCust = idCust
-	status := 1
-	pengajuan.Status = uint(status)
+	// status := 1
+	pengajuan.Status = "Waiting"
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
@@ -147,4 +148,20 @@ func (s *customerService) SCGetByIdKelengkapan(id uint) (*contract.Kelengkapan, 
 		return nil, err
 	}
 	return &getkelengkapan, nil
+}
+
+func (s *customerService) SCGetStatusByIdKelengkapan(id uint) string {
+
+	var getStatusKelengkapan contract.Kelengkapan //db
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	err := db.DbConnection.Table("kelengkapans").Last(&getStatusKelengkapan, "id_pengajuan = ?", id).Error
+
+	if err != nil {
+
+		return "Menu Submission invisible(Menu disable)"
+	}
+
+	return "Menu Submission visible(Menu able)"
 }
