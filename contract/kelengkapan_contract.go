@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Kelengkapan struct {
+type Submission struct {
 	gorm.Model
 	IdCust            uint    `gorm:"not null" json:"id_cust"`
 	IdPengajuan       uint    `gorm:"not null" json:"id_pengajuan"`
@@ -16,7 +16,7 @@ type Kelengkapan struct {
 	StatusKelengkapan string  `gorm:"not null" json:"status_kelengkapan"`
 }
 
-type KelengkapanReturn struct {
+type SubmissionReturn struct {
 	IdCust            uint    `gorm:"not null" json:"id_cust"`
 	IdPengajuan       uint    `gorm:"not null" json:"id_pengajuan"`
 	AlamatRumah       string  `gorm:"not null" json:"alamat_rumah" validate:"required"`

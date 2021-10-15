@@ -6,28 +6,28 @@ import (
 	"gorm.io/gorm"
 )
 
-type Pengajuan struct {
+type Identity struct {
 	gorm.Model
 	IdCust             uint    `gorm:"not null;unique" json:"id_cust"`
-	Nik                string  `gorm:"not null;unique" json:"nik" validate:"required"`
-	NamaLengkap        string  `gorm:"not null" json:"nama_lengkap" validate:"required"`
+	Nik                string  `gorm:"not null;unique" json:"nik" validate:"required,eq=16,numeric"`
+	NamaLengkap        string  `gorm:"not null" json:"nama_lengkap" validate:"required,alpha"`
 	TempatLahir        string  `gorm:"not null" json:"tempat_lahir" validate:"required"`
 	TanggalLahir       string  `gorm:"not null" json:"tanggal_lahir" validate:"required"`
 	Alamat             string  `gorm:"not null" json:"alamat" validate:"required"`
 	Pekerjaan          string  `gorm:"not null" json:"pekerjaan" validate:"required"`
 	PendapatanPerbulan float64 `gorm:"not null" json:"pendapatan_perbulan" validate:"required"`
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp" validate:"required"`
-	Status             uint    `gorm:"not null" json:"status"`
+	Status             string  `gorm:"not null" json:"status"`
 }
 
-type ListPengajuan struct {
+type ListSubmission struct {
 	TanggalPengajuan time.Time `json:"tanggal_pengajuan"`
 	NamaLengkap      string    `json:"nama_lengkap"`
-	Status           uint      `json:"status"`
+	Status           string    `json:"status"`
 	Rekomendasi      string    `json:"rekomendasi"`
 }
 
-type PengajuanReturn struct {
+type IdentityReturn struct {
 	IdCust             uint    `gorm:"not null;unique" json:"id_cust"`
 	Nik                string  `gorm:"not null;unique" json:"nik"`
 	NamaLengkap        string  `gorm:"not null" json:"nama_lengkap"`
@@ -37,9 +37,9 @@ type PengajuanReturn struct {
 	Pekerjaan          string  `gorm:"not null" json:"pekerjaan"`
 	PendapatanPerbulan float64 `gorm:"not null" json:"pendapatan_perbulan"`
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp"`
-	Status             uint    `gorm:"not null" json:"status"`
+	Status             string  `gorm:"not null" json:"status"`
 }
 
-type PengajuanPage struct {
-	CountPage int64 `json:"count_page"`
+type NumberOfPage struct {
+	NumberOfPage int64 `json:"number_of_page"`
 }

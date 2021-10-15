@@ -14,28 +14,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type petugasService struct {
+type employeeService struct {
 	appConfig *config.Config
 	jwtClient jwt_client.JWTClientInterface
 }
 
-type PetugasServiceInterface interface {
-	SPGetListPengajuan(page string) (*[]contract.ListPengajuan, error)
-	SPGetListByName(name string) *[]contract.ListPengajuan
-	SPGetCountPage() *contract.PengajuanPage
+type EmployeeServiceInterface interface {
+	SPGetListSubmission(page string) (*[]contract.ListSubmission, error)
+	SPGetListByName(name string) *[]contract.ListSubmission
+	SPGetNumberOfPage() *contract.NumberOfPage
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SPGetSubmission(id uint) (*contract.Kelengkapan, error)
-	SPPostSubmissionStatus(statusKelengkapan *contract.Kelengkapan, id uint) (*string, error)
+	SPGetSubmissionEmployee(id uint) (*contract.Submission, error)
+	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
 }
 
-func NewPetugasService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *petugasService {
-	return &petugasService{
+func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
+	return &employeeService{
 		appConfig: appConfig,
 		jwtClient: jwtClient,
 	}
 }
 
-func (s *petugasService) SPGetListPengajuan(page string) (*[]contract.ListPengajuan, error) {
+func (s *employeeService) SPGetListSubmission(page string) (*[]contract.ListSubmission, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
 	pages, err := strconv.Atoi(page)
@@ -44,54 +44,54 @@ func (s *petugasService) SPGetListPengajuan(page string) (*[]contract.ListPengaj
 		return nil, err
 	}
 
-	var listPengajuan []contract.ListPengajuan
+	var ListSubmission []contract.ListSubmission
 
 	for i := ((5 * pages) - 2); i < ((5 * pages) + 3); i++ {
-		var pengajuan contract.Pengajuan
-		var kelengkapan contract.Kelengkapan
+		var identity contract.Identity
+		var submission contract.Submission
 
-		err := db.DbConnection.Table("pengajuans").Where("id_cust = ?", i).Find(&pengajuan).Error
-		if pengajuan.IdCust == 0 {
+		err := db.DbConnection.Table("identities").Where("id_cust = ?", i).Find(&identity).Error
+		if identity.IdCust == 0 {
 			break
 		}
 		if err != nil {
 			break
 		}
 
-		er := db.DbConnection.Table("kelengkapans").Last(&kelengkapan, "id_cust = ?", pengajuan.IdCust).Error
+		er := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", identity.IdCust).Error
 		if er != nil {
-			lpengajuan := contract.ListPengajuan{
-				TanggalPengajuan: pengajuan.UpdatedAt,
-				NamaLengkap:      pengajuan.NamaLengkap,
-				Status:           pengajuan.Status,
+			lsubmission := contract.ListSubmission{
+				TanggalPengajuan: identity.UpdatedAt,
+				NamaLengkap:      identity.NamaLengkap,
+				Status:           identity.Status,
 				Rekomendasi:      "-",
 			}
-			listPengajuan = append(listPengajuan, lpengajuan)
+			ListSubmission = append(ListSubmission, lsubmission)
 		} else {
-			lpengajuan := contract.ListPengajuan{
-				TanggalPengajuan: kelengkapan.UpdatedAt,
-				NamaLengkap:      pengajuan.NamaLengkap,
-				Status:           pengajuan.Status,
-				Rekomendasi:      Recommendation(&pengajuan, &kelengkapan),
+			lsubmission := contract.ListSubmission{
+				TanggalPengajuan: submission.UpdatedAt,
+				NamaLengkap:      identity.NamaLengkap,
+				Status:           identity.Status,
+				Rekomendasi:      Recommendation(&identity, &submission),
 			}
-			listPengajuan = append(listPengajuan, lpengajuan)
+			ListSubmission = append(ListSubmission, lsubmission)
 		}
 	}
-	return &listPengajuan, nil
+	return &ListSubmission, nil
 }
 
-func Recommendation(pengajuan *contract.Pengajuan, kelengkapan *contract.Kelengkapan) string {
+func Recommendation(identity *contract.Identity, submission *contract.Submission) string {
 	var kemampuanCicilanPerbulan float64
 	var kenyataanCicilanPerbulan float64
-	kemampuanCicilanPerbulan = (pengajuan.PendapatanPerbulan / 3)
-	kenyataanCicilanPerbulan = (kelengkapan.HargaRumah / float64(kelengkapan.JangkaPembayaran)) / 12
+	kemampuanCicilanPerbulan = (identity.PendapatanPerbulan / 3)
+	kenyataanCicilanPerbulan = (submission.HargaRumah / float64(submission.JangkaPembayaran)) / 12
 	if kemampuanCicilanPerbulan > kenyataanCicilanPerbulan {
 		return "Boleh"
 	}
 	return "Tidak Boleh"
 }
 
-func (s *petugasService) VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error) {
+func (s *employeeService) VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error) {
 	claims := jwt.MapClaims{}
 
 	err := s.jwtClient.ParseTokenWithClaims(req.Token, claims, s.appConfig.JWTSecret)
@@ -130,77 +130,77 @@ func (s *petugasService) VerifyToken(req *contract.ValidateTokenRequestContract)
 	return resp, nil
 }
 
-func (s *petugasService) SPGetCountPage() *contract.PengajuanPage {
-	var countPage int64
+func (s *employeeService) SPGetNumberOfPage() *contract.NumberOfPage {
+	var NumberOfPage int64
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	db.DbConnection.Table("pengajuans").Count(&countPage)
+	db.DbConnection.Table("identities").Count(&NumberOfPage)
 
-	count := contract.PengajuanPage{
-		CountPage: int64(math.Ceil(float64(countPage) / 5.00)),
+	count := contract.NumberOfPage{
+		NumberOfPage: int64(math.Ceil(float64(NumberOfPage) / 5.00)),
 	}
 	return &count
 }
 
-func (s *petugasService) SPGetListByName(name string) *[]contract.ListPengajuan {
-	var pengajuan []contract.Pengajuan
-	var listPengajuan []contract.ListPengajuan
-	var kelengkapan contract.Kelengkapan
+func (s *employeeService) SPGetListByName(name string) *[]contract.ListSubmission {
+	var identity []contract.Identity
+	var ListSubmission []contract.ListSubmission
+	var submission contract.Submission
 
 	namePersen := fmt.Sprint("%" + name + "%")
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-	db.DbConnection.Table("pengajuans").Where("nama_lengkap LIKE ?", namePersen).Find(&pengajuan)
+	db.DbConnection.Table("identities").Where("nama_lengkap LIKE ?", namePersen).Find(&identity)
 
-	for _, v := range pengajuan {
-		er := db.DbConnection.Table("kelengkapans").Last(&kelengkapan, "id_cust = ?", v.IdCust).Error
+	for _, v := range identity {
+		er := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", v.IdCust).Error
 		if er != nil {
-			lpengajuan := contract.ListPengajuan{
+			lsubmission := contract.ListSubmission{
 				TanggalPengajuan: v.UpdatedAt,
 				NamaLengkap:      v.NamaLengkap,
 				Status:           v.Status,
 				Rekomendasi:      "-",
 			}
-			listPengajuan = append(listPengajuan, lpengajuan)
+			ListSubmission = append(ListSubmission, lsubmission)
 		} else {
-			lpengajuan := contract.ListPengajuan{
-				TanggalPengajuan: kelengkapan.UpdatedAt,
+			lsubmission := contract.ListSubmission{
+				TanggalPengajuan: submission.UpdatedAt,
 				NamaLengkap:      v.NamaLengkap,
 				Status:           v.Status,
-				Rekomendasi:      Recommendation(&v, &kelengkapan),
+				Rekomendasi:      Recommendation(&v, &submission),
 			}
-			listPengajuan = append(listPengajuan, lpengajuan)
+			ListSubmission = append(ListSubmission, lsubmission)
 		}
 	}
-	return &listPengajuan
+	return &ListSubmission
 }
 
-func (s *petugasService) SPGetSubmission(id uint) (*contract.Kelengkapan, error) {
+func (s *employeeService) SPGetSubmissionEmployee(id uint) (*contract.Submission, error) {
 
-	var getkelengkapan contract.Kelengkapan
+	var getSubmission contract.Submission
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Table("kelengkapans").Last(&getkelengkapan, "id = ?", id).Error
+	err := db.DbConnection.Table("submissions").Last(&getSubmission, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &getkelengkapan, nil
+	return &getSubmission, nil
 }
 
-func (s *petugasService) SPPostSubmissionStatus(statusKelengkapan *contract.Kelengkapan, id uint) (*string, error) {
+func (s *employeeService) SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	var kelengkapanUpdates contract.Kelengkapan
-	kelengkapanUpdates.StatusKelengkapan = statusKelengkapan.StatusKelengkapan
-	var kelengkapan contract.Kelengkapan
-	err := db.DbConnection.Table("kelengkapans").Last(&kelengkapan, "id_cust = ?", id).Error
+	var submissionUpdates contract.Submission
+	submissionUpdates.StatusKelengkapan = submissionStatus.StatusKelengkapan
+	var submission contract.Submission
+	err := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	err = db.DbConnection.Model(&kelengkapan).Updates(kelengkapanUpdates).Error
+	err = db.DbConnection.Model(&submission).Updates(submissionUpdates).Error
 	if err != nil {
 		return nil, err
 	}
-	return &kelengkapanUpdates.StatusKelengkapan, nil
+	return &submissionUpdates.StatusKelengkapan, nil
 }

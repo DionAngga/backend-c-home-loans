@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetCekPengajuan(customerService service.CustomerServiceInterface) http.HandlerFunc {
+func GetCheckApply(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -30,13 +30,13 @@ func GetCekPengajuan(customerService service.CustomerServiceInterface) http.Hand
 			return
 		}
 
-		dataService := customerService.SCGetCekPengajuan(resp.IdUser)
+		dataService := customerService.SCGetCheckApply(resp.IdUser)
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
-func CreatePengajuan(customerService service.CustomerServiceInterface) http.HandlerFunc {
+func CreateIdentity(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -55,12 +55,12 @@ func CreatePengajuan(customerService service.CustomerServiceInterface) http.Hand
 		}
 		payloads, _ := ioutil.ReadAll(r.Body)
 
-		var pengajuan contract.Pengajuan
+		var identity contract.Identity
 
-		json.Unmarshal(payloads, &pengajuan)
+		json.Unmarshal(payloads, &identity)
 
 		validate := validator.New()
-		error := validate.Struct(pengajuan)
+		error := validate.Struct(identity)
 
 		if error != nil {
 			log.Warning(error)
@@ -68,7 +68,7 @@ func CreatePengajuan(customerService service.CustomerServiceInterface) http.Hand
 			return
 		}
 
-		dataService, err := customerService.SCCreatePengajuan(&pengajuan, resp.IdUser)
+		dataService, err := customerService.SCCreateIdentity(&identity, resp.IdUser)
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -79,7 +79,7 @@ func CreatePengajuan(customerService service.CustomerServiceInterface) http.Hand
 	}
 }
 
-func CreateKelengkapan(customerService service.CustomerServiceInterface) http.HandlerFunc {
+func CreateSubmission(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -99,11 +99,11 @@ func CreateKelengkapan(customerService service.CustomerServiceInterface) http.Ha
 
 		payloads, _ := ioutil.ReadAll(r.Body)
 
-		var kelengkapan contract.Kelengkapan
-		json.Unmarshal(payloads, &kelengkapan)
+		var submission contract.Submission
+		json.Unmarshal(payloads, &submission)
 
 		validate := validator.New()
-		error := validate.Struct(kelengkapan)
+		error := validate.Struct(submission)
 
 		if error != nil {
 			log.Warning(error)
@@ -111,14 +111,14 @@ func CreateKelengkapan(customerService service.CustomerServiceInterface) http.Ha
 			return
 		}
 
-		dataService := customerService.SCCreateKelengkapan(&kelengkapan, resp.IdUser)
+		dataService := customerService.SCCreateSubmission(&submission, resp.IdUser)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 		return
 
 	}
 }
 
-func GetByIdKelengkapan(customerService service.CustomerServiceInterface) http.HandlerFunc {
+func GetSubmissionCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -136,7 +136,7 @@ func GetByIdKelengkapan(customerService service.CustomerServiceInterface) http.H
 			return
 		}
 
-		dataService, err := customerService.SCGetByIdKelengkapan(resp.IdUser)
+		dataService, err := customerService.SCGetSubmission(resp.IdUser)
 		if err != nil {
 			log.Error(err)
 			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
