@@ -147,7 +147,7 @@ func GetSubmissionCustomer(customerService service.CustomerServiceInterface) htt
 	}
 }
 
-func GetStatusByIdKelengkapan(customerService service.CustomerServiceInterface) http.HandlerFunc {
+func GetStatusByIdStatus(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
@@ -165,7 +165,7 @@ func GetStatusByIdKelengkapan(customerService service.CustomerServiceInterface) 
 			return
 		}
 
-		dataService := customerService.SCGetStatusByIdKelengkapan(resp.IdUser)
+		dataService := customerService.SCGetStatusByIdSubmission(resp.IdUser)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
