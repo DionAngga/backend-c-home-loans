@@ -35,7 +35,7 @@ func NewUserService(appConfig *config.Config, jwtClient jwt_client.JWTClientInte
 
 func (s *userService) SUCreate(user *contract.User) interface{} {
 
-	user.LoginAs = 1
+	user.LoginAs = 2
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	password := user.Password

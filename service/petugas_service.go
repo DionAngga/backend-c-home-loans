@@ -26,6 +26,7 @@ type PetugasServiceInterface interface {
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	SPGetSubmission(id uint) (*contract.Kelengkapan, error)
 	SPPostSubmissionStatus(statusKelengkapan *contract.Kelengkapan, id uint) (*string, error)
+	SPPostIdentityStatus(statusPengajuan *contract.Pengajuan, id uint) (*string, error)
 }
 
 func NewPetugasService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *petugasService {
@@ -203,4 +204,21 @@ func (s *petugasService) SPPostSubmissionStatus(statusKelengkapan *contract.Kele
 		return nil, err
 	}
 	return &kelengkapanUpdates.StatusKelengkapan, nil
+}
+
+func (s *petugasService) SPPostIdentityStatus(statusPengajuan *contract.Pengajuan, id uint) (*string, error) {
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	var pengajuanUpdates contract.Pengajuan          //rbody
+	pengajuanUpdates.Status = statusPengajuan.Status //bridge rbody-db
+	var pengajuan contract.Pengajuan                 //db
+	err := db.DbConnection.Table("pengajuans").Last(&pengajuan, "id_cust = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.DbConnection.Model(&pengajuan).Updates(pengajuanUpdates).Error
+	if err != nil {
+		return nil, err
+	}
+	return &pengajuanUpdates.Status, nil
 }

@@ -139,16 +139,16 @@ func GetSubmission(petugasService service.PetugasServiceInterface) http.HandlerF
 		}
 
 		vars := mux.Vars(r)
-		subId := vars["id"]
+		custId := vars["id"]
 
-		subIdint, err := strconv.Atoi(subId)
+		custIdint, err := strconv.Atoi(custId)
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
 			return
 		}
 
-		dataService, err := petugasService.SPGetSubmission(uint(subIdint))
+		dataService, err := petugasService.SPGetSubmission(uint(custIdint))
 
 		if err != nil {
 			log.Error(err)
@@ -199,6 +199,56 @@ func PostSubmissionStatus(petugasService service.PetugasServiceInterface) http.H
 		json.Unmarshal(payloads, &statusKelengkapan)
 
 		dataService, err := petugasService.SPPostSubmissionStatus(&statusKelengkapan, uint(subIdint))
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func PostIdentityStatus(petugasService service.PetugasServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := petugasService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		custId := vars["id_cust"]
+
+		custIdint, err := strconv.Atoi(custId)
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		payloads, _ := ioutil.ReadAll(r.Body)
+		var statusDataDIri contract.Pengajuan
+		json.Unmarshal(payloads, &statusDataDIri)
+
+		dataService, err := petugasService.SPPostIdentityStatus(&statusDataDIri, uint(custIdint))
 
 		if err != nil {
 			log.Error(err)

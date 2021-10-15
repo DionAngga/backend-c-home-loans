@@ -43,6 +43,7 @@ func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceI
 	router.Methods(http.MethodPost).Path("/pengajuan").Handler(handler.CreatePengajuan(dependencies))
 	router.Methods(http.MethodPost).Path("/createkelengkapan").Handler(handler.CreateKelengkapan(dependencies))
 	router.Methods(http.MethodGet).Path("/kelengkapan").Handler(handler.GetByIdKelengkapan(dependencies))
+	router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetStatusByIdKelengkapan(dependencies))
 }
 
 func setPetugasRouter(router *mux.Router, dependencies service.PetugasServiceInterface) {
@@ -51,6 +52,7 @@ func setPetugasRouter(router *mux.Router, dependencies service.PetugasServiceInt
 	router.Methods(http.MethodGet).Path("/searchbyname/{name}").Handler(handler.GetListByName(dependencies))
 	router.Methods(http.MethodGet).Path("/kelengkapan/{id}").Handler(handler.GetSubmission(dependencies))
 	router.Methods(http.MethodPost).Path("/kelengkapan/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
+	router.Methods(http.MethodPost).Path("/datadiri/status/{id_cust}").Handler(handler.PostIdentityStatus(dependencies))
 }
 
 // package router

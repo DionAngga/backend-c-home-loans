@@ -17,13 +17,13 @@ type Pengajuan struct {
 	Pekerjaan          string  `gorm:"not null" json:"pekerjaan" validate:"required"`
 	PendapatanPerbulan float64 `gorm:"not null" json:"pendapatan_perbulan" validate:"required"`
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp" validate:"required"`
-	Status             uint    `gorm:"not null" json:"status"`
+	Status             string  `gorm:"not null" json:"status"`
 }
 
 type ListPengajuan struct {
 	TanggalPengajuan time.Time `json:"tanggal_pengajuan"`
 	NamaLengkap      string    `json:"nama_lengkap"`
-	Status           uint      `json:"status"`
+	Status           string    `json:"status"`
 	Rekomendasi      string    `json:"rekomendasi"`
 }
 
@@ -37,7 +37,7 @@ type PengajuanReturn struct {
 	Pekerjaan          string  `gorm:"not null" json:"pekerjaan"`
 	PendapatanPerbulan float64 `gorm:"not null" json:"pendapatan_perbulan"`
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp"`
-	Status             uint    `gorm:"not null" json:"status"`
+	Status             string  `gorm:"not null" json:"status"`
 }
 
 type PengajuanPage struct {
