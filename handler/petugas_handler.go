@@ -148,7 +148,7 @@ func GetSubmissionEmployee(employeeService service.EmployeeServiceInterface) htt
 			return
 		}
 
-		dataService, err := employeeService.SPGetSubmissionEmployee(uint(subIdint))
+		dataService, err := employeeService.SPGetSubmission(uint(subIdint))
 
 		if err != nil {
 			log.Error(err)

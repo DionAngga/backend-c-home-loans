@@ -21,10 +21,9 @@ type customerService struct {
 type CustomerServiceInterface interface {
 	SCGetCheckApply(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-
 	SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error)
 	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
-  SCGetSubmissionStatus(id uint) string
+	SCGetSubmissionStatus(id uint) string
 	SCGetSubmission(id uint) (*contract.Submission, error)
 }
 

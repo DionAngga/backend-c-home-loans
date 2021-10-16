@@ -26,7 +26,7 @@ type EmployeeServiceInterface interface {
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	SPGetSubmission(id uint) (*contract.Submission, error)
 	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
-  SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
+	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -176,7 +176,7 @@ func (s *employeeService) SPGetListByName(name string) *[]contract.ListSubmissio
 	return &ListSubmission
 }
 
-func (s *employeeService) SPGetSubmissionEmployee(id uint) (*contract.Submission, error) {
+func (s *employeeService) SPGetSubmission(id uint) (*contract.Submission, error) {
 
 	var getSubmission contract.Submission
 
@@ -211,7 +211,7 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 
 	var pengajuanUpdates contract.Identity
 	pengajuanUpdates.Status = statusPengajuan.Status
-	var pengajuan contract.Identity 
+	var pengajuan contract.Identity
 	err := db.DbConnection.Table("pengajuans").Last(&pengajuan, "id_cust = ?", id).Error
 	if err != nil {
 		return nil, err
