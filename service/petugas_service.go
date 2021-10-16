@@ -1,15 +1,19 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/rysmaadit/go-template/common/errors"
 	"github.com/rysmaadit/go-template/config"
 	"github.com/rysmaadit/go-template/contract"
 	"github.com/rysmaadit/go-template/external/jwt_client"
+	miniopkg "github.com/rysmaadit/go-template/external/minio"
 	"github.com/rysmaadit/go-template/external/mysql"
 	log "github.com/sirupsen/logrus"
 )
@@ -27,6 +31,7 @@ type EmployeeServiceInterface interface {
 	SPGetSubmission(id uint) (*contract.Submission, error)
 	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
 	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
+	SPGetFileKtp(buktiKtp string) *minio.Object
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -221,4 +226,17 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 		return nil, err
 	}
 	return &pengajuanUpdates.Status, nil
+}
+
+func (s *employeeService) SPGetFileKtp(buktiKtp string) *minio.Object {
+	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
 }

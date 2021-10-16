@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -166,6 +167,39 @@ func GetSubmissionStatus(customerService service.CustomerServiceInterface) http.
 		}
 
 		dataService := customerService.SCGetSubmissionStatus(resp.IdUser)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func UploadFileKtp(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		r.ParseMultipartForm(10 << 20)
+
+		file, handler, err := r.FormFile("myFile")
+
+		if err != nil {
+			fmt.Println("error Retrieving file from form-data\n", err)
+			return
+		}
+		defer file.Close()
+
+		dataService := customerService.SCUploadFile(&file, handler, resp)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
