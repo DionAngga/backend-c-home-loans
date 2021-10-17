@@ -34,10 +34,10 @@ type CustomerServiceInterface interface {
 	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
-  SCGetFileKtpCustomer(buktiKtp string) *minio.Object
+	SCGetFileKtpCustomer(buktiKtp string) *minio.Object
 	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
 	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
-  SCGetIdentity(id uint) (*contract.IdentityReturn, error)
+	SCGetIdentity(id uint) (*contract.IdentityReturn, error)
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -121,6 +121,7 @@ func (s *customerService) SCCreateIdentity(identity *contract.Identity, idCust u
 		Pekerjaan:          identity.Pekerjaan,
 		PendapatanPerbulan: identity.PendapatanPerbulan,
 		BuktiKtp:           identity.BuktiKtp,
+		BuktiGaji:          identity.BuktiGaji,
 		Status:             identity.Status,
 	}
 	return &pReturn, nil
@@ -237,7 +238,7 @@ func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *m
 
 	return fileLink
 }
-  
+
 func (s *customerService) SCGetFileKtpCustomer(buktiKtp string) *minio.Object {
 	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
@@ -298,6 +299,7 @@ func (s *customerService) SCGetIdentity(id uint) (*contract.IdentityReturn, erro
 		Pekerjaan:          getIdentity.Pekerjaan,
 		PendapatanPerbulan: getIdentity.PendapatanPerbulan,
 		BuktiKtp:           getIdentity.BuktiKtp,
+		BuktiGaji:          getIdentity.BuktiGaji,
 		Status:             getIdentity.Status,
 	}
 	return &rgetIdentity, nil

@@ -34,7 +34,7 @@ type EmployeeServiceInterface interface {
 	SPGetFileKtp(buktiKtp string) *minio.Object
 	SPGetFileBuktiGaji(buktiGaji string) *minio.Object
 	SPGetFileBuktiPendukung(buktiPendukung string) *minio.Object
-  SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error)
+	SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error)
 	SPGetTotalIdentityUnconfirmed() (*contract.StatusTotalIdentity, error)
 }
 
@@ -292,6 +292,7 @@ func (s *employeeService) SPGetIdentityEmployee(id uint) (*contract.IdentityRetu
 		Pekerjaan:          getIdentity.Pekerjaan,
 		PendapatanPerbulan: getIdentity.PendapatanPerbulan,
 		BuktiKtp:           getIdentity.BuktiKtp,
+		BuktiGaji:          getIdentity.BuktiGaji,
 		Status:             getIdentity.Status,
 	}
 	return &rgetIdentity, nil
