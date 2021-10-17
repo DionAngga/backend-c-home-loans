@@ -34,6 +34,9 @@ type CustomerServiceInterface interface {
 	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
+  SCGetFileKtpCustomer(buktiKtp string) *minio.Object
+	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
+	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -165,52 +168,6 @@ func (s *customerService) SCGetSubmissionStatus(id uint) string {
 	return "Menu Submission visible(Menu able)"
 }
 
-func (s *customerService) SCUploadFile(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
-	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, ".pdf"}, "")
-	fileName := strings.Join([]string{"ktp/", fileLink}, "")
-
-	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
-
-	ctx := context.Background()
-
-	fileReader := io.Reader(*file)
-	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
-	if err != nil {
-		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
-	}
-
-	log.Printf("Uploading the file #%s succeeded!", fileName)
-	fmt.Println("UploadInfo:")
-	fmt.Printf("%+v\n", uploadInfo)
-
-	return fileLink
-}
-
-func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
-	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
-	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
-
-	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
-
-	ctx := context.Background()
-
-	fileReader := io.Reader(*file)
-	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
-	if err != nil {
-		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
-	}
-
-	log.Printf("Uploading the file #%s succeeded!", fileName)
-	fmt.Println("UploadInfo:")
-	fmt.Printf("%+v\n", uploadInfo)
-
-	return fileLink
-}
-
 func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
 	idString := strconv.Itoa(int(resp.IdUser))
 	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, ".pdf"}, "")
@@ -278,4 +235,43 @@ func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *m
 	fmt.Printf("%+v\n", uploadInfo)
 
 	return fileLink
+}
+  
+func (s *customerService) SCGetFileKtpCustomer(buktiKtp string) *minio.Object {
+	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object {
+	fileName := strings.Join([]string{"gaji/", buktiGaji}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object {
+	fileName := strings.Join([]string{"dokumen/", buktiFilependukung}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
 }

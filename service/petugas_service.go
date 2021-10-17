@@ -231,7 +231,7 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	return &pengajuanUpdates.Status, nil
 }
 
-func (s *employeeService) SPGetFileKtp(buktiKtp string) *minio.Object {
+func (s *employeeService) SPGetFileKtpEmployee(buktiKtp string) *minio.Object {
 	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
