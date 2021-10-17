@@ -32,6 +32,8 @@ type EmployeeServiceInterface interface {
 	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
 	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
 	SPGetFileKtp(buktiKtp string) *minio.Object
+	SPGetFileBuktiGaji(buktiGaji string) *minio.Object
+	SPGetFileBuktiPendukung(buktiPendukung string) *minio.Object
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -196,7 +198,6 @@ func (s *employeeService) SPGetSubmission(id uint) (*contract.Submission, error)
 
 func (s *employeeService) SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-
 	var submissionUpdates contract.Submission
 	submissionUpdates.StatusKelengkapan = submissionStatus.StatusKelengkapan
 	var submission contract.Submission
@@ -217,7 +218,9 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	var pengajuanUpdates contract.Identity
 	pengajuanUpdates.Status = statusPengajuan.Status
 	var pengajuan contract.Identity
-	err := db.DbConnection.Table("pengajuans").Last(&pengajuan, "id_cust = ?", id).Error
+
+  err := db.DbConnection.Table("identities").Last(&pengajuan, "id_cust = ?", id).Error
+
 	if err != nil {
 		return nil, err
 	}
@@ -230,6 +233,32 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 
 func (s *employeeService) SPGetFileKtp(buktiKtp string) *minio.Object {
 	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *employeeService) SPGetFileBuktiGaji(buktiGaji string) *minio.Object {
+	fileName := strings.Join([]string{"slip-gaji/", buktiGaji}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *employeeService) SPGetFileBuktiPendukung(buktiPendukung string) *minio.Object {
+	fileName := strings.Join([]string{"bukti-pendukung/", buktiPendukung}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
 	ctx := context.Background()

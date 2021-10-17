@@ -57,11 +57,11 @@ func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceI
 	router.Methods(http.MethodGet).Path("/listsubmission/{page}").Handler(handler.GetListSubmission(dependencies))
 	router.Methods(http.MethodGet).Path("/searchbyname/{name}").Handler(handler.GetListByName(dependencies))
 	router.Methods(http.MethodGet).Path("/submission/{id}").Handler(handler.GetSubmissionEmployee(dependencies))
-	router.Methods(http.MethodPost).Path("submission/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
+	router.Methods(http.MethodPost).Path("/submission/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
 	router.Methods(http.MethodPost).Path("/identity/status/{id_cust}").Handler(handler.PostIdentityStatus(dependencies))
 	router.Methods(http.MethodGet).Path("/getfilektp/{bukti_ktp}").Handler(handler.GetFileKtpEmployee(dependencies))
-	// router.Methods(http.MethodGet).Path("/getfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiEmployee(dependencies))
-	// router.Methods(http.MethodGet).Path("/getfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungEmployee(dependencies))
+	router.Methods(http.MethodGet).Path("/getfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiEmployee(dependencies))
+	router.Methods(http.MethodGet).Path("/getfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungEmployee(dependencies))
 }
 
 // package router
