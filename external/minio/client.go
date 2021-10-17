@@ -1,8 +1,9 @@
-package minio
+package miniopkg
 
 import (
 	"context"
 	"fmt"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rysmaadit/go-template/common/errors"
@@ -14,20 +15,20 @@ type Client interface {
 }
 
 type client struct {
-	minioClient *minio.Client
-	bucketName  string
+	MinioClient *minio.Client
+	BucketName  string
 }
 
 func (c *client) Ping() error {
 	ctx := context.Background()
-	isExist, err := c.minioClient.BucketExists(ctx, c.bucketName)
+	isExist, err := c.MinioClient.BucketExists(ctx, c.BucketName)
 	if err != nil {
 		log.Warning("Error in checking the bucket")
 		return err
 	}
 
 	if !isExist {
-		return errors.New(fmt.Sprintf("bucket %s does not exist", c.bucketName))
+		return errors.New(fmt.Sprintf("bucket %s does not exist", c.BucketName))
 	}
 	return nil
 }
@@ -42,7 +43,7 @@ func NewMinioClient(config ClientConfig) *client {
 		log.Fatalf("unable to initiate minio client. %v", err)
 	}
 	return &client{
-		minioClient: minioClient,
-		bucketName:  config.BucketName,
+		MinioClient: minioClient,
+		BucketName:  config.BucketName,
 	}
 }

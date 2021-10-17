@@ -14,6 +14,9 @@ import (
 type JWTMapClaim struct {
 	Authorized bool   `json:"authorized"`
 	RequestID  string `json:"requestID"`
+	IdUser     uint   `json:"id_user"`
+	Username   string `json:"username"`
+	LoginAs    uint   `json:"login_as"`
 	jwt.StandardClaims
 }
 
@@ -33,6 +36,30 @@ func NewValidateTokenRequest(r *http.Request) (*ValidateTokenRequestContract, er
 		log.Warning(err)
 		return nil, errors.NewBadRequestError(err)
 	}
+
+	validate := validator.New()
+	util.UseJsonFieldValidation(validate)
+
+	if err := validate.Struct(validate); err != nil {
+		log.Error(err)
+		return nil, errors.NewValidationError(errors.ValidateErrToMapString(err.(validator.ValidationErrors)))
+	}
+
+	return validateTokenContract, nil
+}
+
+func NewValidateTokenRequestViaCookie(r *http.Request) (*ValidateTokenRequestContract, error) {
+	validateTokenContract := new(ValidateTokenRequestContract)
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			log.Warning(err)
+			return nil, errors.NewUnauthorizedError("error no token in cookie")
+		}
+		return nil, errors.NewBadRequestError(err)
+	}
+
+	validateTokenContract.Token = cookie.Value
 
 	validate := validator.New()
 	util.UseJsonFieldValidation(validate)
