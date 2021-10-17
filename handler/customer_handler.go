@@ -114,8 +114,6 @@ func CreateSubmission(customerService service.CustomerServiceInterface) http.Han
 
 		dataService := customerService.SCCreateSubmission(&submission, resp.IdUser)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
-		return
-
 	}
 }
 
@@ -191,7 +189,7 @@ func UploadFileKtp(customerService service.CustomerServiceInterface) http.Handle
 
 		r.ParseMultipartForm(10 << 20)
 
-		file, handler, err := r.FormFile("myFile")
+		file, handler, err := r.FormFile("KTP")
 
 		if err != nil {
 			fmt.Println("error Retrieving file from form-data\n", err)
@@ -199,7 +197,73 @@ func UploadFileKtp(customerService service.CustomerServiceInterface) http.Handle
 		}
 		defer file.Close()
 
-		dataService := customerService.SCUploadFile(&file, handler, resp)
+		dataService := customerService.SCUploadFileKTP(&file, handler, resp)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func UploadFileGaji(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		r.ParseMultipartForm(10 << 20)
+
+		file, handler, err := r.FormFile("buktiGaji")
+
+		if err != nil {
+			fmt.Println("error Retrieving file from form-data\n", err)
+			return
+		}
+		defer file.Close()
+
+		dataService := customerService.SCUploadFileGaji(&file, handler, resp)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func UploadFilePendukung(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		r.ParseMultipartForm(10 << 20)
+
+		file, handler, err := r.FormFile("dokumenPendukung")
+
+		if err != nil {
+			fmt.Println("error Retrieving file from form-data\n", err)
+			return
+		}
+		defer file.Close()
+
+		dataService := customerService.SCUploadFilePendukung(&file, handler, resp)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
