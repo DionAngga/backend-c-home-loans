@@ -34,6 +34,8 @@ type EmployeeServiceInterface interface {
 	SPGetFileKtp(buktiKtp string) *minio.Object
 	SPGetFileBuktiGaji(buktiGaji string) *minio.Object
 	SPGetFileBuktiPendukung(buktiPendukung string) *minio.Object
+  SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error)
+	SPGetTotalIdentityUnconfirmed() (*contract.StatusTotalIdentity, error)
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -268,4 +270,62 @@ func (s *employeeService) SPGetFileBuktiPendukung(buktiPendukung string) *minio.
 		return nil
 	}
 	return obj
+}
+
+func (s *employeeService) SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error) {
+	var getIdentity contract.Identity
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	err := db.DbConnection.Table("Identities").Last(&getIdentity, "id_cust = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	rgetIdentity := contract.IdentityReturn{
+		IdCust:             getIdentity.IdCust,
+		Nik:                getIdentity.Nik,
+		NamaLengkap:        getIdentity.NamaLengkap,
+		TempatLahir:        getIdentity.TempatLahir,
+		TanggalLahir:       getIdentity.TanggalLahir,
+		Alamat:             getIdentity.Alamat,
+		Pekerjaan:          getIdentity.Pekerjaan,
+		PendapatanPerbulan: getIdentity.PendapatanPerbulan,
+		BuktiKtp:           getIdentity.BuktiKtp,
+		Status:             getIdentity.Status,
+	}
+	return &rgetIdentity, nil
+}
+
+func (s *employeeService) SPGetTotalIdentityUnconfirmed() (*contract.StatusTotalIdentity, error) {
+	var countMV int64
+	var countT int64
+	var countTT int64
+	var countMP int64
+	var countD int64
+	var countTD int64
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	db.DbConnection.Table("identities").Where("status = ?", "Menunggu Verifikasi").Count(&countMV)
+
+	db.DbConnection.Table("identities").Where("status = ?", "Terverifikasi").Count(&countT)
+
+	db.DbConnection.Table("identities").Where("status = ?", "Tidak Terverifikasi").Count(&countTT)
+
+	db.DbConnection.Table("submissions").Where("status_kelengkapan = ?", "Menunggu Persetujuan").Count(&countMP)
+
+	db.DbConnection.Table("submissions").Where("status_kelengkapan = ?", "Disetujui").Count(&countD)
+
+	db.DbConnection.Table("submissions").Where("status_kelengkapan = ?", "Tidak Disetujui").Count(&countTD)
+
+	rgetStatusTotal := contract.StatusTotalIdentity{
+		MenungguVerifikasi:  uint(countMV),
+		Terverifikasi:       uint(countT),
+		TidakTerverifikasi:  uint(countTT),
+		MenungguPersetujuan: uint(countMP),
+		Disetujui:           uint(countD),
+		TidakDisetujui:      uint(countTD),
+	}
+	return &rgetStatusTotal, nil
 }

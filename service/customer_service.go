@@ -37,6 +37,7 @@ type CustomerServiceInterface interface {
   SCGetFileKtpCustomer(buktiKtp string) *minio.Object
 	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
 	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
+  SCGetIdentity(id uint) (*contract.IdentityReturn, error)
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -274,4 +275,30 @@ func (s *customerService) SCGetFilePendukungCustomer(buktiFilependukung string) 
 		return nil
 	}
 	return obj
+}
+
+func (s *customerService) SCGetIdentity(id uint) (*contract.IdentityReturn, error) {
+
+	var getIdentity contract.Identity
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	err := db.DbConnection.Table("Identities").Last(&getIdentity, "id_cust = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	rgetIdentity := contract.IdentityReturn{
+		IdCust:             getIdentity.IdCust,
+		Nik:                getIdentity.Nik,
+		NamaLengkap:        getIdentity.NamaLengkap,
+		TempatLahir:        getIdentity.TempatLahir,
+		TanggalLahir:       getIdentity.TanggalLahir,
+		Alamat:             getIdentity.Alamat,
+		Pekerjaan:          getIdentity.Pekerjaan,
+		PendapatanPerbulan: getIdentity.PendapatanPerbulan,
+		BuktiKtp:           getIdentity.BuktiKtp,
+		Status:             getIdentity.Status,
+	}
+	return &rgetIdentity, nil
 }

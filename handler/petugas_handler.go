@@ -386,3 +386,79 @@ func GetFilePendukungEmployee(employeeService service.EmployeeServiceInterface) 
 		}
 	}
 }
+
+func GetIdentityEmployee(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		subId := vars["id_cust"]
+
+		subIdint, err := strconv.Atoi(subId)
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+    
+    dataService, err := employeeService.SPGetIdentityEmployee(uint(subIdint))
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func TotalIdentityUnconfirmed(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+    
+		dataService, err := employeeService.SPGetTotalIdentityUnconfirmed()
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}

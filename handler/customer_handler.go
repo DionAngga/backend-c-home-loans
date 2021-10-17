@@ -334,3 +334,34 @@ func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) 
 		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
+
+func GetIdentityCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		dataService, err := customerService.SCGetIdentity(resp.IdUser)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+    
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+

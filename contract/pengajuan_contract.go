@@ -45,3 +45,12 @@ type IdentityReturn struct {
 type NumberOfPage struct {
 	NumberOfPage int64 `json:"number_of_page"`
 }
+
+type StatusTotalIdentity struct {
+	MenungguVerifikasi  uint `json:"menunggu_verifikasi"`
+	Terverifikasi       uint `json:"terverifikasi"`
+	TidakTerverifikasi  uint `json:"tidak_terverifikasi"`
+	MenungguPersetujuan uint `json:"menunggu_persetujuan"`
+	Disetujui           uint `json:"disetujui"`
+	TidakDisetujui      uint `json:"tidak_disetujui"`
+}
