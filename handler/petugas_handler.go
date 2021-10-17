@@ -299,7 +299,6 @@ func GetFileKtpEmployee(employeeService service.EmployeeServiceInterface) http.H
 			w.WriteHeader(http.StatusOK)
 			w.Write(data)
 		}
-
 	}
 }
 
@@ -385,6 +384,5 @@ func GetFilePendukungEmployee(employeeService service.EmployeeServiceInterface) 
 			w.WriteHeader(http.StatusOK)
 			w.Write(data)
 		}
-
 	}
 }

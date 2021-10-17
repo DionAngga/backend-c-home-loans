@@ -45,7 +45,7 @@ func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceI
 	router.Methods(http.MethodGet).Path("/submission/getstatus").Handler(handler.GetSubmissionStatus(dependencies))
 	router.Methods(http.MethodGet).Path("/getsubmission").Handler(handler.GetSubmissionCustomer(dependencies))
 	router.Methods(http.MethodPost).Path("/uploadfilektp").Handler(handler.UploadFileKtp(dependencies))
-	// router.Methods(http.MethodPost).Path("/uploadfilegaji").Handler(handler.UploadFileGaji(dependencies))
+	router.Methods(http.MethodPost).Path("/uploadfilegaji").Handler(handler.UploadFileGaji(dependencies))
 	router.Methods(http.MethodPost).Path("/uploadfilependukung").Handler(handler.UploadFilePendukung(dependencies))
 	// router.Methods(http.MethodGet).Path("/getfilektp/{bukti_ktp}").Handler(handler.GetFileKtpCustomer(dependencies))
 	// router.Methods(http.MethodGet).Path("/getfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiCustomer(dependencies))
@@ -62,7 +62,6 @@ func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceI
 	router.Methods(http.MethodGet).Path("/getfilektp/{bukti_ktp}").Handler(handler.GetFileKtpEmployee(dependencies))
 	router.Methods(http.MethodGet).Path("/getfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiEmployee(dependencies))
 	router.Methods(http.MethodGet).Path("/getfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungEmployee(dependencies))
-
 }
 
 // package router

@@ -218,7 +218,9 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	var pengajuanUpdates contract.Identity
 	pengajuanUpdates.Status = statusPengajuan.Status
 	var pengajuan contract.Identity
-	err := db.DbConnection.Table("identities").Last(&pengajuan, "id_cust = ?", id).Error
+
+  err := db.DbConnection.Table("identities").Last(&pengajuan, "id_cust = ?", id).Error
+
 	if err != nil {
 		return nil, err
 	}
