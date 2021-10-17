@@ -1,14 +1,20 @@
 package service
 
 import (
+	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"strconv"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/minio/minio-go/v7"
 	"github.com/rysmaadit/go-template/common/errors"
 	"github.com/rysmaadit/go-template/config"
 	"github.com/rysmaadit/go-template/contract"
 	"github.com/rysmaadit/go-template/external/jwt_client"
+	miniopkg "github.com/rysmaadit/go-template/external/minio"
 	"github.com/rysmaadit/go-template/external/mysql"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,11 +27,12 @@ type customerService struct {
 type CustomerServiceInterface interface {
 	SCGetCheckApply(idCust uint) string
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
-	SCGetByIdKelengkapan(id uint) (*contract.Submission, error)
-	SCGetStatusByIdSubmission(id uint) string
 	SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error)
 	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
+	SCGetSubmissionStatus(id uint) string
 	SCGetSubmission(id uint) (*contract.Submission, error)
+	SCUploadFile(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
+	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -138,11 +145,8 @@ func (s *customerService) SCCreateSubmission(submission *contract.Submission, id
 }
 
 func (s *customerService) SCGetSubmission(id uint) (*contract.Submission, error) {
-
 	var getSubmission contract.Submission
-
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-
 	err := db.DbConnection.Table("submissions").Last(&getSubmission, "id_pengajuan = ?", id).Error
 	if err != nil {
 		return nil, err
@@ -150,18 +154,58 @@ func (s *customerService) SCGetSubmission(id uint) (*contract.Submission, error)
 	return &getSubmission, nil
 }
 
-func (s *customerService) SCGetStatusByIdKelengkapan(id uint) string {
-
-	var getStatusKelengkapan contract.Submission //db
-
+func (s *customerService) SCGetSubmissionStatus(id uint) string {
+	var getStatusKelengkapan contract.Submission
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-
-	err := db.DbConnection.Table("kelengkapans").Last(&getStatusKelengkapan, "id_pengajuan = ?", id).Error
-
+	err := db.DbConnection.Table("submissions").Last(&getStatusKelengkapan, "id_pengajuan = ?", id).Error
 	if err != nil {
-
 		return "Menu Submission invisible(Menu disable)"
 	}
-
 	return "Menu Submission visible(Menu able)"
+}
+
+func (s *customerService) SCUploadFile(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+	idString := strconv.Itoa(int(resp.IdUser))
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, ".pdf"}, "")
+	fileName := strings.Join([]string{"ktp/", fileLink}, "")
+
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+
+	fileReader := io.Reader(*file)
+	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
+	if err != nil {
+		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
+		return "Error in uploading the file"
+	}
+
+	log.Printf("Uploading the file #%s succeeded!", fileName)
+	fmt.Println("UploadInfo:")
+	fmt.Printf("%+v\n", uploadInfo)
+
+	return fileLink
+}
+
+func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+	idString := strconv.Itoa(int(resp.IdUser))
+	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
+	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
+
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+
+	fileReader := io.Reader(*file)
+	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
+	if err != nil {
+		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
+		return "Error in uploading the file"
+	}
+
+	log.Printf("Uploading the file #%s succeeded!", fileName)
+	fmt.Println("UploadInfo:")
+	fmt.Printf("%+v\n", uploadInfo)
+
+	return fileLink
 }

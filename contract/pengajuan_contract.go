@@ -9,8 +9,8 @@ import (
 type Identity struct {
 	gorm.Model
 	IdCust             uint    `gorm:"not null;unique" json:"id_cust"`
-	Nik                string  `gorm:"not null;unique" json:"nik" validate:"required,eq=16,numeric"`
-	NamaLengkap        string  `gorm:"not null" json:"nama_lengkap" validate:"required,alpha"`
+	Nik                string  `gorm:"not null;unique" json:"nik" validate:"required,len=16,numeric"`
+	NamaLengkap        string  `gorm:"not null" json:"nama_lengkap" validate:"required"`
 	TempatLahir        string  `gorm:"not null" json:"tempat_lahir" validate:"required"`
 	TanggalLahir       string  `gorm:"not null" json:"tanggal_lahir" validate:"required"`
 	Alamat             string  `gorm:"not null" json:"alamat" validate:"required"`
