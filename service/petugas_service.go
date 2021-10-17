@@ -219,7 +219,7 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	pengajuanUpdates.Status = statusPengajuan.Status
 	var pengajuan contract.Identity
 
-  err := db.DbConnection.Table("identities").Last(&pengajuan, "id_cust = ?", id).Error
+	err := db.DbConnection.Table("identities").Last(&pengajuan, "id_cust = ?", id).Error
 
 	if err != nil {
 		return nil, err
@@ -231,7 +231,7 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	return &pengajuanUpdates.Status, nil
 }
 
-func (s *employeeService) SPGetFileKtpEmployee(buktiKtp string) *minio.Object {
+func (s *employeeService) SPGetFileKtp(buktiKtp string) *minio.Object {
 	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 

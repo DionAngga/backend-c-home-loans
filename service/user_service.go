@@ -65,7 +65,7 @@ func (s *userService) SULogin(user *contract.User) (*contract.GetTokenResponseCo
 		return nil, errors.NewUnauthorizedError("combination of username and password not match, username tidak ada")
 	}
 
-	if user.Password != registeredUser.Password {
+	if !CheckPasswordHash(user.Password, registeredUser.Password) {
 		return nil, errors.NewUnauthorizedError("combination of username and password not match, password salah")
 	}
 
@@ -108,4 +108,9 @@ func (s *userService) GetToken(user *contract.User) (*contract.GetTokenResponseC
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
