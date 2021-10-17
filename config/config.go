@@ -1,10 +1,9 @@
 package config
 
 import (
-	log "github.com/sirupsen/logrus"
 	"os"
 
-	"github.com/subosito/gotenv"
+	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -27,11 +26,6 @@ type Config struct {
 }
 
 func Init() *Config {
-	defaultEnv := ".env"
-
-	if err := gotenv.Load(defaultEnv); err != nil {
-		log.Warning("failed load .env")
-	}
 
 	log.SetOutput(os.Stdout)
 
