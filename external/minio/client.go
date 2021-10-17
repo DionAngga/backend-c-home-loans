@@ -32,7 +32,6 @@ func (c *client) Ping() error {
 	}
 	return nil
 }
-
 func NewMinioClient(config ClientConfig) *client {
 	minioClient, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV2(config.AccessKey, config.SecretKey, ""),
