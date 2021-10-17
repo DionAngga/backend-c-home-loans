@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator"
+	"github.com/gorilla/mux"
 	"github.com/rysmaadit/go-template/common/responder"
 	"github.com/rysmaadit/go-template/contract"
 	"github.com/rysmaadit/go-template/service"
@@ -114,8 +115,6 @@ func CreateSubmission(customerService service.CustomerServiceInterface) http.Han
 
 		dataService := customerService.SCCreateSubmission(&submission, resp.IdUser)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
-		return
-
 	}
 }
 
@@ -171,35 +170,6 @@ func GetSubmissionStatus(customerService service.CustomerServiceInterface) http.
 	}
 }
 
-func GetIdentityCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
-
-		if err != nil {
-			log.Warning(err)
-			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
-			return
-		}
-
-		resp, err := customerService.VerifyToken(tokenC)
-
-		if err != nil {
-			log.Error(err)
-			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
-			return
-		}
-
-		dataService, err := customerService.SCGetIdentity(resp.IdUser)
-		if err != nil {
-			log.Error(err)
-			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
-			return
-		}
-
-		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
-	}
-}
-
 func UploadFileKtp(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
@@ -220,7 +190,7 @@ func UploadFileKtp(customerService service.CustomerServiceInterface) http.Handle
 
 		r.ParseMultipartForm(10 << 20)
 
-		file, handler, err := r.FormFile("myFile")
+		file, handler, err := r.FormFile("KTP")
 
 		if err != nil {
 			fmt.Println("error Retrieving file from form-data\n", err)
@@ -228,7 +198,170 @@ func UploadFileKtp(customerService service.CustomerServiceInterface) http.Handle
 		}
 		defer file.Close()
 
-		dataService := customerService.SCUploadFile(&file, handler, resp)
+		dataService := customerService.SCUploadFileKTP(&file, handler, resp)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
+
+func UploadFileGaji(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		r.ParseMultipartForm(10 << 20)
+
+		file, handler, err := r.FormFile("buktiGaji")
+
+		if err != nil {
+			fmt.Println("error Retrieving file from form-data\n", err)
+			return
+		}
+		defer file.Close()
+
+		dataService := customerService.SCUploadFileGaji(&file, handler, resp)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func UploadFilePendukung(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		r.ParseMultipartForm(10 << 20)
+
+		file, handler, err := r.FormFile("dokumenPendukung")
+
+		if err != nil {
+			fmt.Println("error Retrieving file from form-data\n", err)
+			return
+		}
+		defer file.Close()
+
+		dataService := customerService.SCUploadFilePendukung(&file, handler, resp)
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFileKtpCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		buktiKtp := vars["bukti_ktp"]
+
+		dataService := customerService.SCGetFileKtpCustomer(buktiKtp)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFileBuktiGajiCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		buktiGaji := vars["bukti_gaji"]
+
+		dataService := customerService.SCGetFileBuktiGajiCustomer(buktiGaji)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		buktiFilependukung := vars["dokumen_pendukung"]
+
+		dataService := customerService.SCGetFileBuktiGajiCustomer(buktiFilependukung)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetIdentityCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		dataService, err := customerService.SCGetIdentity(resp.IdUser)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+    
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+

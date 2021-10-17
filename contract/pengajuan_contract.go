@@ -17,6 +17,7 @@ type Identity struct {
 	Pekerjaan          string  `gorm:"not null" json:"pekerjaan" validate:"required"`
 	PendapatanPerbulan float64 `gorm:"not null" json:"pendapatan_perbulan" validate:"required"`
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp" validate:"required"`
+	BuktiGaji          string  `gorm:"not null" json:"bukti_gaji" validate:"required"`
 	Status             string  `gorm:"not null" json:"status"`
 }
 
@@ -37,6 +38,7 @@ type IdentityReturn struct {
 	Pekerjaan          string  `gorm:"not null" json:"pekerjaan"`
 	PendapatanPerbulan float64 `gorm:"not null" json:"pendapatan_perbulan"`
 	BuktiKtp           string  `gorm:"not null" json:"bukti_ktp"`
+	BuktiGaji          string  `gorm:"not null" json:"bukti_gaji"`
 	Status             string  `gorm:"not null" json:"status"`
 }
 

@@ -210,52 +210,6 @@ func PostSubmissionStatus(employeeService service.EmployeeServiceInterface) http
 	}
 }
 
-func GetIdentityEmployee(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
-
-		if err != nil {
-			log.Warning(err)
-			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
-			return
-		}
-
-		resp, err := employeeService.VerifyToken(tokenC)
-
-		if err != nil {
-			log.Error(err)
-			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
-			return
-		}
-
-		if resp.LoginAs != 2 {
-			log.Error(err)
-			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
-			return
-		}
-
-		vars := mux.Vars(r)
-		subId := vars["id_cust"]
-
-		subIdint, err := strconv.Atoi(subId)
-		if err != nil {
-			log.Warning(err)
-			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
-			return
-		}
-
-		dataService, err := employeeService.SPGetIdentityEmployee(uint(subIdint))
-
-		if err != nil {
-			log.Error(err)
-			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
-			return
-		}
-
-		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
-	}
-}
-
 func PostIdentityStatus(petugasService service.EmployeeServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
@@ -345,7 +299,137 @@ func GetFileKtpEmployee(employeeService service.EmployeeServiceInterface) http.H
 			w.WriteHeader(http.StatusOK)
 			w.Write(data)
 		}
-		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFileBuktiGajiEmployee(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		buktiGaji := vars["bukti_gaji"]
+
+		dataService := employeeService.SPGetFileBuktiGaji(buktiGaji)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+
+	}
+}
+
+func GetFilePendukungEmployee(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		buktiPendukung := vars["dokumen_pendukung"]
+
+		dataService := employeeService.SPGetFileBuktiPendukung(buktiPendukung)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+	}
+}
+
+func GetIdentityEmployee(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		vars := mux.Vars(r)
+		subId := vars["id_cust"]
+
+		subIdint, err := strconv.Atoi(subId)
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+    
+    dataService, err := employeeService.SPGetIdentityEmployee(uint(subIdint))
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
 
@@ -372,7 +456,7 @@ func TotalIdentityUnconfirmed(employeeService service.EmployeeServiceInterface) 
 			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
 			return
 		}
-
+    
 		dataService, err := employeeService.SPGetTotalIdentityUnconfirmed()
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
