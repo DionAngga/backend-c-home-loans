@@ -31,7 +31,7 @@ type EmployeeServiceInterface interface {
 	SPGetSubmission(id uint) (*contract.Submission, error)
 	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
 	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
-	SPGetFileKtp(buktiKtp string) *minio.Object
+	SPGetFileKtpEmployee(buktiKtp string) *minio.Object
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -228,7 +228,7 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	return &pengajuanUpdates.Status, nil
 }
 
-func (s *employeeService) SPGetFileKtp(buktiKtp string) *minio.Object {
+func (s *employeeService) SPGetFileKtpEmployee(buktiKtp string) *minio.Object {
 	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 

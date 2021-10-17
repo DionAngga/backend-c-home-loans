@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator"
+	"github.com/gorilla/mux"
 	"github.com/rysmaadit/go-template/common/responder"
 	"github.com/rysmaadit/go-template/contract"
 	"github.com/rysmaadit/go-template/service"
@@ -201,5 +202,71 @@ func UploadFileKtp(customerService service.CustomerServiceInterface) http.Handle
 
 		dataService := customerService.SCUploadFile(&file, handler, resp)
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFileKtpCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		buktiKtp := vars["bukti_ktp"]
+
+		dataService := customerService.SCGetFileKtpCustomer(buktiKtp)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFileBuktiGajiCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		buktiGaji := vars["bukti_gaji"]
+
+		dataService := customerService.SCGetFileBuktiGajiCustomer(buktiGaji)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		buktiFilependukung := vars["dokumen_pendukung"]
+
+		dataService := customerService.SCGetFileBuktiGajiCustomer(buktiFilependukung)
+
+		data, readErr := ioutil.ReadAll(dataService)
+		if readErr != nil {
+			w.WriteHeader(http.StatusNotFound)
+			log.Println("Can't read object ")
+			return
+		} else {
+			w.Header().Set("Content-Type", "application/pdf")
+			w.WriteHeader(http.StatusOK)
+			w.Write(data)
+		}
+		// responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }

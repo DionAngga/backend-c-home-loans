@@ -287,7 +287,7 @@ func GetFileKtpEmployee(employeeService service.EmployeeServiceInterface) http.H
 		vars := mux.Vars(r)
 		buktiKtp := vars["bukti_ktp"]
 
-		dataService := employeeService.SPGetFileKtp(buktiKtp)
+		dataService := employeeService.SPGetFileKtpEmployee(buktiKtp)
 
 		data, readErr := ioutil.ReadAll(dataService)
 		if readErr != nil {

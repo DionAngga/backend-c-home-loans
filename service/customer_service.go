@@ -32,6 +32,9 @@ type CustomerServiceInterface interface {
 	SCGetSubmissionStatus(id uint) string
 	SCGetSubmission(id uint) (*contract.Submission, error)
 	SCUploadFile(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
+	SCGetFileKtpCustomer(buktiKtp string) *minio.Object
+	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
+	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -193,4 +196,43 @@ func (s *customerService) SCUploadFile(file *multipart.File, handler *multipart.
 	fmt.Printf("%+v\n", uploadInfo)
 
 	return fileLink
+}
+
+func (s *customerService) SCGetFileKtpCustomer(buktiKtp string) *minio.Object {
+	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object {
+	fileName := strings.Join([]string{"gaji/", buktiGaji}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object {
+	fileName := strings.Join([]string{"dokumen/", buktiFilependukung}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
 }
