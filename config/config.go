@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -30,7 +31,7 @@ func Init() *Config {
 	defaultEnv := ".env"
 
 	if err := gotenv.Load(defaultEnv); err != nil {
-		log.Warning("failed load .env")
+		fmt.Println("failed load .env")
 	}
 	log.SetOutput(os.Stdout)
 
