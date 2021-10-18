@@ -271,6 +271,27 @@ func UploadFilePendukung(customerService service.CustomerServiceInterface) http.
 
 func GetFileKtpCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 1 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
 
 		vars := mux.Vars(r)
 		buktiKtp := vars["bukti_ktp"]
@@ -293,6 +314,27 @@ func GetFileKtpCustomer(customerService service.CustomerServiceInterface) http.H
 
 func GetFileBuktiGajiCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 1 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
 
 		vars := mux.Vars(r)
 		buktiGaji := vars["bukti_gaji"]
@@ -315,11 +357,31 @@ func GetFileBuktiGajiCustomer(customerService service.CustomerServiceInterface) 
 
 func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 1 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
 		vars := mux.Vars(r)
 		buktiFilependukung := vars["dokumen_pendukung"]
 
-		dataService := customerService.SCGetFileBuktiGajiCustomer(buktiFilependukung)
+		dataService := customerService.SCGetFilePendukungCustomer(buktiFilependukung)
 
 		data, readErr := ioutil.ReadAll(dataService)
 		if readErr != nil {
@@ -360,8 +422,7 @@ func GetIdentityCustomer(customerService service.CustomerServiceInterface) http.
 			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
 			return
 		}
-    
+
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
-
