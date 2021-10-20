@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/minio/minio-go/v7"
 	"github.com/rysmaadit/go-template/common/errors"
@@ -36,6 +37,7 @@ type EmployeeServiceInterface interface {
 	SPGetFileBuktiPendukung(buktiPendukung string) *minio.Object
 	SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error)
 	SPGetTotalIdentityUnconfirmed() (*contract.StatusTotalIdentity, error)
+	SPDownloadReport() *excelize.File
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -329,4 +331,109 @@ func (s *employeeService) SPGetTotalIdentityUnconfirmed() (*contract.StatusTotal
 		TidakDisetujui:      uint(countTD),
 	}
 	return &rgetStatusTotal, nil
+}
+
+// func (s *employeeService) SPDownloadReport() *[]byte {
+// 	var ListAccepted []contract.ListAccepted
+// 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+// 	err := db.DbConnection.Raw("SELECT * FROM identities cross JOIN submissions WHERE identities.id_cust = submissions.id_cust AND submissions.status_kelengkapan = ?", "Disetujui").Find(&ListAccepted).Error
+// 	if err != nil {
+// 		return nil
+// 	}
+// 	// jsonFile, err := os.Open("download_report.json")
+
+// 	// if err != nil {
+// 	// 	fmt.Println(err)
+// 	// }
+// 	// fmt.Println("Successfully Opened download_report.json")
+// 	// defer jsonFile.Close()
+// 	// data, _ := ioutil.ReadAll(jsonFile)
+
+// 	// var downloadreport []contract.ListAccepted
+// 	// err = json.Unmarshal([]byte(data), &jsonFile)
+// 	// if err != nil {
+// 	// 	fmt.Println(err)
+// 	// }
+// 	csvFile, err := os.Create("./datareport.csv")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	defer csvFile.Close()
+// 	writer := csv.NewWriter(csvFile)
+// 	for _, dr := range ListAccepted {
+// 		var row []string
+// 		row = append(row, strconv.FormatUint(uint64(dr.IdCust), 10))
+// 		row = append(row, dr.Nik)
+// 		row = append(row, dr.NamaLengkap)
+// 		row = append(row, dr.TempatLahir)
+// 		row = append(row, dr.TanggalLahir)
+// 		row = append(row, dr.Alamat)
+// 		row = append(row, dr.Pekerjaan)
+// 		row = append(row, strconv.FormatFloat(3.1415, byte(dr.PendapatanPerbulan), -1, 64))
+// 		row = append(row, dr.BuktiKtp)
+// 		row = append(row, dr.BuktiGaji)
+// 		row = append(row, dr.Status)
+// 		row = append(row, dr.AlamatRumah)
+// 		row = append(row, strconv.FormatFloat(3.1415, byte(dr.LuasTanah), -1, 64))
+// 		row = append(row, strconv.FormatFloat(3.1415, byte(dr.HargaRumah), -1, 64))
+// 		row = append(row, strconv.FormatUint(uint64(dr.JangkaPembayaran), 10))
+// 		row = append(row, dr.DokumenPendukung)
+// 		row = append(row, dr.StatusKelengkapan)
+// 		writer.Write(row)
+// 	}
+// 	// remember to flush!
+// 	writer.Flush()
+
+// 	data, err := ioutil.ReadFile("./datareport.csv")
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	return &data
+// }
+
+func (s *employeeService) SPDownloadReport() *excelize.File {
+	f := excelize.NewFile()
+	var ListAccepted []contract.ListAccepted
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+	err := db.DbConnection.Raw("SELECT * FROM identities cross JOIN submissions WHERE identities.id_cust = submissions.id_cust AND submissions.status_kelengkapan = ?", "Disetujui").Find(&ListAccepted).Error
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	f.SetCellValue("Sheet1", "a1", "No")
+	f.SetCellValue("Sheet1", "b1", "NIK")
+	f.SetCellValue("Sheet1", "c1", "Nama Lengkap")
+	f.SetCellValue("Sheet1", "d1", "Tempat Lahir")
+	f.SetCellValue("Sheet1", "e1", "Tanggal Lahir")
+	f.SetCellValue("Sheet1", "f1", "Alamat")
+	f.SetCellValue("Sheet1", "g1", "Pekerjaan")
+	f.SetCellValue("Sheet1", "h1", "Pendapatan Perbulan")
+	f.SetCellValue("Sheet1", "i1", "Status Data Diri")
+	f.SetCellValue("Sheet1", "j1", "Alamat Rumah KPR")
+	f.SetCellValue("Sheet1", "k1", "Luas Tanah KPR")
+	f.SetCellValue("Sheet1", "l1", "Harga Rumah KPR")
+	f.SetCellValue("Sheet1", "m1", "Jangka Pembayaran")
+	f.SetCellValue("Sheet1", "n1", "Status Kelengkapan")
+
+	for i, v := range ListAccepted {
+		incstr := strconv.Itoa(i + 2)
+		f.SetCellValue("Sheet1", "a"+incstr, i+1)
+		f.SetCellValue("Sheet1", "b"+incstr, v.Nik)
+		f.SetCellValue("Sheet1", "c"+incstr, v.NamaLengkap)
+		f.SetCellValue("Sheet1", "d"+incstr, v.TempatLahir)
+		f.SetCellValue("Sheet1", "e"+incstr, v.TanggalLahir)
+		f.SetCellValue("Sheet1", "f"+incstr, v.Alamat)
+		f.SetCellValue("Sheet1", "g"+incstr, v.Pekerjaan)
+		f.SetCellValue("Sheet1", "h"+incstr, v.PendapatanPerbulan)
+		f.SetCellValue("Sheet1", "i"+incstr, v.Status)
+		f.SetCellValue("Sheet1", "j"+incstr, v.AlamatRumah)
+		f.SetCellValue("Sheet1", "k"+incstr, v.LuasTanah)
+		f.SetCellValue("Sheet1", "l"+incstr, v.HargaRumah)
+		f.SetCellValue("Sheet1", "m"+incstr, v.JangkaPembayaran)
+		f.SetCellValue("Sheet1", "n"+incstr, v.StatusKelengkapan)
+	}
+	if err = f.SaveAs("./Export.xlsx"); err != nil {
+		println(err.Error())
+	}
+	return f
 }

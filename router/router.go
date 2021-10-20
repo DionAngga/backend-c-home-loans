@@ -70,6 +70,7 @@ func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceI
 	router.Methods(http.MethodGet).Path("/pgetfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungEmployee(dependencies))
 	router.Methods(http.MethodGet).Path("/totalidentityunconfirmed").Handler(handler.TotalIdentityUnconfirmed(dependencies))
 	router.Methods(http.MethodGet).Path("/identitycustomer/{id_cust}").Handler(handler.GetIdentityEmployee(dependencies))
+	router.Methods(http.MethodGet).Path("/downloadreport").Handler(handler.DownloadReport(dependencies))
 }
 
 // package router

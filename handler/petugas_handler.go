@@ -420,8 +420,8 @@ func GetIdentityEmployee(employeeService service.EmployeeServiceInterface) http.
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
 			return
 		}
-    
-    dataService, err := employeeService.SPGetIdentityEmployee(uint(subIdint))
+
+		dataService, err := employeeService.SPGetIdentityEmployee(uint(subIdint))
 
 		if err != nil {
 			log.Error(err)
@@ -456,9 +456,51 @@ func TotalIdentityUnconfirmed(employeeService service.EmployeeServiceInterface) 
 			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
 			return
 		}
-    
-		dataService, err := employeeService.SPGetTotalIdentityUnconfirmed()
+
+		dataService, _ := employeeService.SPGetTotalIdentityUnconfirmed()
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}
+
+func DownloadReport(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		// vars := mux.Vars(r)
+		// downloadReport := vars["download_report"]
+
+		// dataService := employeeService.SPDownloadReport()
+		f := employeeService.SPDownloadReport()
+
+		// w.Header().Set("Content-Type", "application/excel")
+		// w.WriteHeader(http.StatusOK)
+		// w.Write(*dataService)
+		// file, err := excelize.OpenFile("./Export.xlsx")
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+		w.Header().Set("Content-Disposition", "attachment; filename="+string("Export.xlsx")+"")
+		f.Write(w)
 	}
 }
