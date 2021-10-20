@@ -14,6 +14,7 @@ import (
 func NewRouter(dependencies service.Dependencies) http.Handler {
 	r := mux.NewRouter()
 
+	setHomeRouter(r)
 	setAuthRouter(r, dependencies.AuthService)
 	setCheckRouter(r, dependencies.CheckService)
 	setUserRouter(r, dependencies.UserService)
@@ -22,6 +23,10 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	return loggedRouter
+}
+
+func setHomeRouter(router *mux.Router) {
+	router.Methods(http.MethodGet).Path("/").Handler(handler.Home())
 }
 
 func setAuthRouter(router *mux.Router, dependencies service.AuthServiceInterface) {
