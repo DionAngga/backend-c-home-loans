@@ -253,7 +253,7 @@ func (s *customerService) SCGetFileKtpCustomer(buktiKtp string) *minio.Object {
 }
 
 func (s *customerService) SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object {
-	fileName := strings.Join([]string{"gaji/", buktiGaji}, "")
+	fileName := strings.Join([]string{"slip-gaji/", buktiGaji}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
 	ctx := context.Background()
@@ -266,7 +266,7 @@ func (s *customerService) SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Ob
 }
 
 func (s *customerService) SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object {
-	fileName := strings.Join([]string{"dokumen/", buktiFilependukung}, "")
+	fileName := strings.Join([]string{"bukti-pendukung/", buktiFilependukung}, "")
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
 	ctx := context.Background()

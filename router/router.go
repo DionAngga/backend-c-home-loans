@@ -53,9 +53,9 @@ func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceI
 	router.Methods(http.MethodPost).Path("/uploadfilektp").Handler(handler.UploadFileKtp(dependencies))
 	router.Methods(http.MethodPost).Path("/uploadfilegaji").Handler(handler.UploadFileGaji(dependencies))
 	router.Methods(http.MethodPost).Path("/uploadfilependukung").Handler(handler.UploadFilePendukung(dependencies))
-	router.Methods(http.MethodGet).Path("/getfilektp/{bukti_ktp}").Handler(handler.GetFileKtpCustomer(dependencies))
-	router.Methods(http.MethodGet).Path("/getfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiCustomer(dependencies))
-	router.Methods(http.MethodGet).Path("/getfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungCustomer(dependencies))
+	router.Methods(http.MethodGet).Path("/cgetfilektp/{bukti_ktp}").Handler(handler.GetFileKtpCustomer(dependencies))
+	router.Methods(http.MethodGet).Path("/cgetfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiCustomer(dependencies))
+	router.Methods(http.MethodGet).Path("/cgetfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungCustomer(dependencies))
 }
 
 func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceInterface) {
@@ -65,9 +65,9 @@ func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceI
 	router.Methods(http.MethodGet).Path("/submission/{id}").Handler(handler.GetSubmissionEmployee(dependencies))
 	router.Methods(http.MethodPost).Path("/submission/status/{id_cust}").Handler(handler.PostSubmissionStatus(dependencies))
 	router.Methods(http.MethodPost).Path("/identity/status/{id_cust}").Handler(handler.PostIdentityStatus(dependencies))
-	router.Methods(http.MethodGet).Path("/getfilektp/{bukti_ktp}").Handler(handler.GetFileKtpEmployee(dependencies))
-	router.Methods(http.MethodGet).Path("/getfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiEmployee(dependencies))
-	router.Methods(http.MethodGet).Path("/getfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungEmployee(dependencies))
+	router.Methods(http.MethodGet).Path("/pgetfilektp/{bukti_ktp}").Handler(handler.GetFileKtpEmployee(dependencies))
+	router.Methods(http.MethodGet).Path("/pgetfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiEmployee(dependencies))
+	router.Methods(http.MethodGet).Path("/pgetfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungEmployee(dependencies))
 	router.Methods(http.MethodGet).Path("/totalidentityunconfirmed").Handler(handler.TotalIdentityUnconfirmed(dependencies))
 	router.Methods(http.MethodGet).Path("/identitycustomer/{id_cust}").Handler(handler.GetIdentityEmployee(dependencies))
 }
