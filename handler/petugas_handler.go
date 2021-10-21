@@ -457,7 +457,7 @@ func TotalIdentityUnconfirmed(employeeService service.EmployeeServiceInterface) 
 			return
 		}
 
-		dataService, _ := employeeService.SPGetTotalIdentityUnconfirmed()
+		dataService, _ := employeeService.SPGetStatusTotal()
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
@@ -500,7 +500,7 @@ func DownloadReport(employeeService service.EmployeeServiceInterface) http.Handl
 		// if err != nil {
 		// 	fmt.Println(err)
 		// }
-		w.Header().Set("Content-Disposition", "attachment; filename="+string("Export.xlsx")+"")
+		w.Header().Set("Content-Disposition", "attachment; filename="+string("Report_pengajuan_yang_disetujui.xlsx")+"")
 		f.Write(w)
 	}
 }

@@ -17,6 +17,7 @@ type Submission struct {
 }
 
 type SubmissionReturn struct {
+	IdKelengkapan     uint    `gorm:"not null" json:"id_kelengkapan"`
 	IdCust            uint    `gorm:"not null" json:"id_cust"`
 	IdPengajuan       uint    `gorm:"not null" json:"id_pengajuan"`
 	AlamatRumah       string  `gorm:"not null" json:"alamat_rumah" validate:"required"`
@@ -45,4 +46,10 @@ type ListAccepted struct {
 	JangkaPembayaran   uint    `gorm:"not null" json:"jangka_pembayaran"`
 	DokumenPendukung   string  `gorm:"not null" json:"dokumen_pendukung"`
 	StatusKelengkapan  string  `gorm:"not null" json:"status_kelengkapan"`
+}
+
+type StatusKelengkapanReturn struct {
+	Id                uint   `gorm:"not null;unique" json:"id"`
+	IdCust            uint   `gorm:"not null;unique" json:"id_cust"`
+	StatusKelengkapan string `gorm:"not null" json:"status_kelengkapan"`
 }

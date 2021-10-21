@@ -30,13 +30,13 @@ type EmployeeServiceInterface interface {
 	SPGetNumberOfPage() *contract.NumberOfPage
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	SPGetSubmission(id uint) (*contract.Submission, error)
-	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error)
-	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error)
+	SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*contract.StatusKelengkapanReturn, error)
+	SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*contract.StatusReturn, error)
 	SPGetFileKtp(buktiKtp string) *minio.Object
 	SPGetFileBuktiGaji(buktiGaji string) *minio.Object
 	SPGetFileBuktiPendukung(buktiPendukung string) *minio.Object
 	SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error)
-	SPGetTotalIdentityUnconfirmed() (*contract.StatusTotalIdentity, error)
+	SPGetStatusTotal() (*contract.StatusTotalIdentity, error)
 	SPDownloadReport() *excelize.File
 }
 
@@ -200,7 +200,7 @@ func (s *employeeService) SPGetSubmission(id uint) (*contract.Submission, error)
 	return &getSubmission, nil
 }
 
-func (s *employeeService) SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*string, error) {
+func (s *employeeService) SPPostSubmissionStatus(submissionStatus *contract.Submission, id uint) (*contract.StatusKelengkapanReturn, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	var submissionUpdates contract.Submission
 	submissionUpdates.StatusKelengkapan = submissionStatus.StatusKelengkapan
@@ -213,10 +213,15 @@ func (s *employeeService) SPPostSubmissionStatus(submissionStatus *contract.Subm
 	if err != nil {
 		return nil, err
 	}
-	return &submissionUpdates.StatusKelengkapan, nil
+	sreturn := contract.StatusKelengkapanReturn{
+		Id:                id,
+		IdCust:            submission.IdCust,
+		StatusKelengkapan: submissionUpdates.StatusKelengkapan,
+	}
+	return &sreturn, nil
 }
 
-func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*string, error) {
+func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identity, id uint) (*contract.StatusReturn, error) {
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
 	var pengajuanUpdates contract.Identity
@@ -232,7 +237,12 @@ func (s *employeeService) SPPostIdentityStatus(statusPengajuan *contract.Identit
 	if err != nil {
 		return nil, err
 	}
-	return &pengajuanUpdates.Status, nil
+	sreturn := contract.StatusReturn{
+		Id:     pengajuan.IdCust,
+		IdCust: pengajuan.IdCust,
+		Status: pengajuanUpdates.Status,
+	}
+	return &sreturn, nil
 }
 
 func (s *employeeService) SPGetFileKtp(buktiKtp string) *minio.Object {
@@ -279,12 +289,13 @@ func (s *employeeService) SPGetIdentityEmployee(id uint) (*contract.IdentityRetu
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Table("Identities").Last(&getIdentity, "id_cust = ?", id).Error
+	err := db.DbConnection.Table("identities").Last(&getIdentity, "id_cust = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
 
 	rgetIdentity := contract.IdentityReturn{
+		Id:                 getIdentity.IdCust,
 		IdCust:             getIdentity.IdCust,
 		Nik:                getIdentity.Nik,
 		NamaLengkap:        getIdentity.NamaLengkap,
@@ -300,7 +311,7 @@ func (s *employeeService) SPGetIdentityEmployee(id uint) (*contract.IdentityRetu
 	return &rgetIdentity, nil
 }
 
-func (s *employeeService) SPGetTotalIdentityUnconfirmed() (*contract.StatusTotalIdentity, error) {
+func (s *employeeService) SPGetStatusTotal() (*contract.StatusTotalIdentity, error) {
 	var countMV int64
 	var countT int64
 	var countTT int64
@@ -432,8 +443,8 @@ func (s *employeeService) SPDownloadReport() *excelize.File {
 		f.SetCellValue("Sheet1", "m"+incstr, v.JangkaPembayaran)
 		f.SetCellValue("Sheet1", "n"+incstr, v.StatusKelengkapan)
 	}
-	if err = f.SaveAs("./Export.xlsx"); err != nil {
-		println(err.Error())
-	}
+	// if err = f.SaveAs("./Export.xlsx"); err != nil {
+	// 	println(err.Error())
+	// }
 	return f
 }

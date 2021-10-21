@@ -30,7 +30,7 @@ type CustomerServiceInterface interface {
 	SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error)
 	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
 	SCGetSubmissionStatus(id uint) string
-	SCGetSubmission(id uint) (*contract.Submission, error)
+	SCGetSubmission(id uint) (*contract.SubmissionReturn, error)
 	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
 	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
@@ -137,6 +137,7 @@ func (s *customerService) SCCreateSubmission(submission *contract.Submission, id
 	db.DbConnection.Create(&submission)
 
 	kReturn := contract.SubmissionReturn{
+		IdKelengkapan:     submission.ID,
 		IdCust:            submission.IdCust,
 		IdPengajuan:       submission.IdPengajuan,
 		AlamatRumah:       submission.AlamatRumah,
@@ -150,14 +151,24 @@ func (s *customerService) SCCreateSubmission(submission *contract.Submission, id
 
 }
 
-func (s *customerService) SCGetSubmission(id uint) (*contract.Submission, error) {
+func (s *customerService) SCGetSubmission(id uint) (*contract.SubmissionReturn, error) {
 	var getSubmission contract.Submission
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	err := db.DbConnection.Table("submissions").Last(&getSubmission, "id_pengajuan = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &getSubmission, nil
+	kReturn := contract.SubmissionReturn{
+		IdCust:            getSubmission.IdCust,
+		IdPengajuan:       getSubmission.IdPengajuan,
+		AlamatRumah:       getSubmission.AlamatRumah,
+		LuasTanah:         getSubmission.LuasTanah,
+		HargaRumah:        getSubmission.HargaRumah,
+		JangkaPembayaran:  getSubmission.JangkaPembayaran,
+		DokumenPendukung:  getSubmission.DokumenPendukung,
+		StatusKelengkapan: getSubmission.StatusKelengkapan,
+	}
+	return &kReturn, nil
 }
 
 func (s *customerService) SCGetSubmissionStatus(id uint) string {
@@ -284,7 +295,7 @@ func (s *customerService) SCGetIdentity(id uint) (*contract.IdentityReturn, erro
 
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 
-	err := db.DbConnection.Table("Identities").Last(&getIdentity, "id_cust = ?", id).Error
+	err := db.DbConnection.Table("identities").Last(&getIdentity, "id_cust = ?", id).Error
 	if err != nil {
 		return nil, err
 	}

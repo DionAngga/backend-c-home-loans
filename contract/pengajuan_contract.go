@@ -29,6 +29,7 @@ type ListSubmission struct {
 }
 
 type IdentityReturn struct {
+	Id                 uint    `gorm:"not null;unique" json:"id"`
 	IdCust             uint    `gorm:"not null;unique" json:"id_cust"`
 	Nik                string  `gorm:"not null;unique" json:"nik"`
 	NamaLengkap        string  `gorm:"not null" json:"nama_lengkap"`
@@ -53,4 +54,10 @@ type StatusTotalIdentity struct {
 	MenungguPersetujuan uint `json:"menunggu_persetujuan"`
 	Disetujui           uint `json:"disetujui"`
 	TidakDisetujui      uint `json:"tidak_disetujui"`
+}
+
+type StatusReturn struct {
+	Id     uint   `gorm:"not null;unique" json:"id"`
+	IdCust uint   `gorm:"not null;unique" json:"id_cust"`
+	Status string `gorm:"not null" json:"status"`
 }

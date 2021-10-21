@@ -20,6 +20,15 @@ func Create(userService service.UserServiceInterface) http.HandlerFunc {
 		var user contract.User
 		json.Unmarshal(payloads, &user)
 
+		validate := validator.New()
+		error := validate.Struct(user)
+
+		if error != nil {
+			log.Warning(error)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, error)
+			return
+		}
+
 		dataService := userService.SUCreate(&user)
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
@@ -28,15 +37,22 @@ func Create(userService service.UserServiceInterface) http.HandlerFunc {
 
 func Login(userService service.UserServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		payloads, _ := ioutil.ReadAll(r.Body)
+		payloads, err := ioutil.ReadAll(r.Body)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
 		var user contract.User
 		json.Unmarshal(payloads, &user)
 
 		validte := validator.New()
-		err := validte.Struct(user)
-		if err != nil {
-			log.Warning(err)
-			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+		error := validte.Struct(user)
+		if error != nil {
+			log.Warning(error)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, error)
 			return
 		}
 
