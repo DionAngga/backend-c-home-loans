@@ -13,6 +13,7 @@ import (
 
 func NewRouter(dependencies service.Dependencies) http.Handler {
 	r := mux.NewRouter()
+	r.Use(accessControlMiddleware)
 
 	setHomeRouter(r)
 	setAuthRouter(r, dependencies.AuthService)
@@ -23,6 +24,20 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	return loggedRouter
+}
+
+func accessControlMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS,PUT")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func setHomeRouter(router *mux.Router) {
