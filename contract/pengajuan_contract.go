@@ -61,3 +61,11 @@ type StatusReturn struct {
 	IdCust uint   `gorm:"not null;unique" json:"id_cust"`
 	Status string `gorm:"not null" json:"status"`
 }
+
+type UploadBuktiKtpReturn struct {
+	BuktiKtp string `gorm:"not null" json:"bukti_ktp"`
+}
+
+type UploadBuktiGajiReturn struct {
+	BuktiGaji string `gorm:"not null" json:"bukti_gaji"`
+}

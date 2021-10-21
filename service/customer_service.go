@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/minio/minio-go/v7"
@@ -31,9 +32,9 @@ type CustomerServiceInterface interface {
 	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
 	SCGetSubmissionStatus(id uint) string
 	SCGetSubmission(id uint) (*contract.SubmissionReturn, error)
-	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
-	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
-	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
+	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiKtpReturn, error)
+	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiGajiReturn, error)
+	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadDokumenPendukungReturn, error)
 	SCGetFileKtpCustomer(buktiKtp string) *minio.Object
 	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
 	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
@@ -181,9 +182,10 @@ func (s *customerService) SCGetSubmissionStatus(id uint) string {
 	return "Menu Submission visible(Menu able)"
 }
 
-func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiKtpReturn, error) {
+	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, ".pdf"}, "")
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"ktp/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
@@ -194,19 +196,23 @@ func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipa
 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
 	if err != nil {
 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
+		return nil, err
 	}
 
 	log.Printf("Uploading the file #%s succeeded!", fileName)
 	fmt.Println("UploadInfo:")
 	fmt.Printf("%+v\n", uploadInfo)
 
-	return fileLink
+	uploadLink := contract.UploadBuktiKtpReturn{
+		BuktiKtp: fileLink,
+	}
+	return &uploadLink, nil
 }
 
-func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiGajiReturn, error) {
+	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"slip-gaji-", idString, "-", resp.Username, ".pdf"}, "")
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"slip-gaji/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
@@ -217,20 +223,24 @@ func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multip
 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
 	if err != nil {
 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
+		return nil, err
 	}
 
 	log.Printf("Uploading the file #%s succeeded!", fileName)
 	fmt.Println("UploadInfo:")
 	fmt.Printf("%+v\n", uploadInfo)
 
-	return fileLink
+	uploadLink := contract.UploadBuktiGajiReturn{
+		BuktiGaji: fileLink,
+	}
+	return &uploadLink, nil
 }
 
-func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadDokumenPendukungReturn, error) {
+	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
-	fileName := strings.Join([]string{"bukti-endukung/", fileLink}, "")
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
+	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
@@ -240,14 +250,17 @@ func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *m
 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
 	if err != nil {
 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
+		return nil, err
 	}
 
 	log.Printf("Uploading the file #%s succeeded!", fileName)
 	fmt.Println("UploadInfo:")
 	fmt.Printf("%+v\n", uploadInfo)
 
-	return fileLink
+	uploadLink := contract.UploadDokumenPendukungReturn{
+		DokumenPendukung: fileLink,
+	}
+	return &uploadLink, nil
 }
 
 func (s *customerService) SCGetFileKtpCustomer(buktiKtp string) *minio.Object {

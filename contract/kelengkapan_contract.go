@@ -53,3 +53,7 @@ type StatusKelengkapanReturn struct {
 	IdCust            uint   `gorm:"not null;unique" json:"id_cust"`
 	StatusKelengkapan string `gorm:"not null" json:"status_kelengkapan"`
 }
+
+type UploadDokumenPendukungReturn struct {
+	DokumenPendukung string `gorm:"not null" json:"dokumen_pendukung"`
+}

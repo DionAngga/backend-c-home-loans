@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -190,15 +189,21 @@ func UploadFileKtp(customerService service.CustomerServiceInterface) http.Handle
 
 		r.ParseMultipartForm(10 << 20)
 
-		file, handler, err := r.FormFile("KTP")
+		file, handler, err := r.FormFile("ktp")
 
 		if err != nil {
-			fmt.Println("error Retrieving file from form-data\n", err)
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
 			return
 		}
 		defer file.Close()
 
-		dataService := customerService.SCUploadFileKTP(&file, handler, resp)
+		dataService, err := customerService.SCUploadFileKTP(&file, handler, resp)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
@@ -223,15 +228,21 @@ func UploadFileGaji(customerService service.CustomerServiceInterface) http.Handl
 
 		r.ParseMultipartForm(10 << 20)
 
-		file, handler, err := r.FormFile("buktiGaji")
+		file, handler, err := r.FormFile("bukti_gaji")
 
 		if err != nil {
-			fmt.Println("error Retrieving file from form-data\n", err)
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
 			return
 		}
 		defer file.Close()
 
-		dataService := customerService.SCUploadFileGaji(&file, handler, resp)
+		dataService, err := customerService.SCUploadFileGaji(&file, handler, resp)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
@@ -256,15 +267,21 @@ func UploadFilePendukung(customerService service.CustomerServiceInterface) http.
 
 		r.ParseMultipartForm(10 << 20)
 
-		file, handler, err := r.FormFile("dokumenPendukung")
+		file, handler, err := r.FormFile("dokumen_pendukung")
 
 		if err != nil {
-			fmt.Println("error Retrieving file from form-data\n", err)
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
 			return
 		}
 		defer file.Close()
 
-		dataService := customerService.SCUploadFilePendukung(&file, handler, resp)
+		dataService, err := customerService.SCUploadFilePendukung(&file, handler, resp)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
