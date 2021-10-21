@@ -20,6 +20,8 @@ func GetListSubmission(employeeService service.EmployeeServiceInterface) http.Ha
 
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
