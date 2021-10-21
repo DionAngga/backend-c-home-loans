@@ -58,6 +58,8 @@ func GetNumberOfPage(employeeService service.EmployeeServiceInterface) http.Hand
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
