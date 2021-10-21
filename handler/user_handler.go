@@ -15,6 +15,9 @@ import (
 
 func Create(userService service.UserServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		payloads, _ := ioutil.ReadAll(r.Body)
 
 		var user contract.User
@@ -37,6 +40,9 @@ func Create(userService service.UserServiceInterface) http.HandlerFunc {
 
 func Login(userService service.UserServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		payloads, err := ioutil.ReadAll(r.Body)
 
 		if err != nil {
