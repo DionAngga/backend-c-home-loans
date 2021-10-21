@@ -13,7 +13,7 @@ import (
 
 func NewRouter(dependencies service.Dependencies) http.Handler {
 	r := mux.NewRouter()
-	r.Use(accessControlMiddleware)
+	// r.Use(accessControlMiddleware)
 
 	setHomeRouter(r)
 	setAuthRouter(r, dependencies.AuthService)
@@ -22,23 +22,27 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 	setCustomerRouter(r, dependencies.CustomerService)
 	setEmployeeRouter(r, dependencies.EmployeeService)
 
-	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
+	headersOK := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	originsOK := handlers.AllowedOrigins([]string{"*"})
+	methodsOK := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
+
+	loggedRouter := handlers.LoggingHandler(os.Stderr, handlers.CORS(headersOK, originsOK, methodsOK)(r))
 	return loggedRouter
 }
 
-func accessControlMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS,PUT")
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+// func accessControlMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		w.Header().Set("Access-Control-Allow-Origin", "*")
+// 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS,PUT")
+// 		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
 
-		if r.Method == "OPTIONS" {
-			return
-		}
+// 		if r.Method == "OPTIONS" {
+// 			return
+// 		}
 
-		next.ServeHTTP(w, r)
-	})
-}
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
 
 func setHomeRouter(router *mux.Router) {
 	router.Methods(http.MethodGet).Path("/").Handler(handler.Home())
