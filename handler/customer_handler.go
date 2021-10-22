@@ -443,3 +443,48 @@ func GetIdentityCustomer(customerService service.CustomerServiceInterface) http.
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }
+
+func UpdateIdentityCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := customerService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 1 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+
+		payloads, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+		var updateIdentity contract.Identity
+		json.Unmarshal(payloads, &updateIdentity)
+
+		dataService, err := customerService.SCUpdateIdentityCustomer(&updateIdentity, resp.IdUser)
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
+	}
+}

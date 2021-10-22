@@ -56,6 +56,7 @@ func setCustomerRouter(router *mux.Router, dependencies service.CustomerServiceI
 	router.Methods(http.MethodGet).Path("/cgetfilektp/{bukti_ktp}").Handler(handler.GetFileKtpCustomer(dependencies))
 	router.Methods(http.MethodGet).Path("/cgetfilegaji/{bukti_gaji}").Handler(handler.GetFileBuktiGajiCustomer(dependencies))
 	router.Methods(http.MethodGet).Path("/cgetfilependukung/{dokumen_pendukung}").Handler(handler.GetFilePendukungCustomer(dependencies))
+	router.Methods(http.MethodPost).Path("/identity/update").Handler(handler.UpdateIdentityCustomer(dependencies))
 }
 
 func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceInterface) {

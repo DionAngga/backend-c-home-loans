@@ -39,6 +39,7 @@ type CustomerServiceInterface interface {
 	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
 	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
 	SCGetIdentity(id uint) (*contract.IdentityReturn, error)
+	SCUpdateIdentityCustomer(identity *contract.Identity, id uint) (*contract.IdentityReturn, error)
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -327,4 +328,47 @@ func (s *customerService) SCGetIdentity(id uint) (*contract.IdentityReturn, erro
 		Status:             getIdentity.Status,
 	}
 	return &rgetIdentity, nil
+}
+
+func (s *customerService) SCUpdateIdentityCustomer(identity *contract.Identity, id uint) (*contract.IdentityReturn, error) {
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	var identityUpdates contract.Identity
+	identityUpdates.Nik = identity.Nik
+	identityUpdates.NamaLengkap = identity.NamaLengkap
+	identityUpdates.TempatLahir = identity.TempatLahir
+	identityUpdates.TanggalLahir = identity.TanggalLahir
+	identityUpdates.Alamat = identity.Alamat
+	identityUpdates.Pekerjaan = identity.Pekerjaan
+	identityUpdates.PendapatanPerbulan = identity.PendapatanPerbulan
+	identityUpdates.BuktiKtp = identity.BuktiKtp
+	identityUpdates.BuktiGaji = identity.BuktiGaji
+	identityUpdates.Status = "Menunggu Verifikasi"
+	var identityUp contract.Identity
+
+	err := db.DbConnection.Table("identities").Where("id_cust = ?", id).Find(&identityUp).Error
+
+	if err != nil {
+		return nil, err
+	}
+	err = db.DbConnection.Model(&identityUp).Updates(identityUpdates).Error
+	if err != nil {
+		return nil, err
+	}
+
+	ureturn := contract.IdentityReturn{
+		Id:                 identityUp.ID,
+		IdCust:             identityUp.IdCust,
+		Nik:                identityUpdates.Nik,
+		NamaLengkap:        identityUpdates.NamaLengkap,
+		TempatLahir:        identityUpdates.TempatLahir,
+		TanggalLahir:       identityUpdates.TanggalLahir,
+		Alamat:             identityUpdates.Alamat,
+		Pekerjaan:          identityUpdates.Pekerjaan,
+		PendapatanPerbulan: identityUpdates.PendapatanPerbulan,
+		BuktiKtp:           identityUpdates.BuktiKtp,
+		BuktiGaji:          identityUpdates.BuktiGaji,
+		Status:             identityUp.Status,
+	}
+	return &ureturn, nil
 }
