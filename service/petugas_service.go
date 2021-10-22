@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/dgrijalva/jwt-go"
@@ -25,8 +26,8 @@ type employeeService struct {
 }
 
 type EmployeeServiceInterface interface {
-	SPGetListSubmission(page string) (*[]contract.ListSubmission, error)
-	SPGetListByName(name string) *[]contract.ListSubmission
+	SPGetListSubmission(page int) (*[]contract.ListSubmission, error)
+	SPGetListByName(name string) (*[]contract.ListSubmission, error)
 	SPGetNumberOfPage() *contract.NumberOfPage
 	VerifyToken(req *contract.ValidateTokenRequestContract) (*contract.JWTMapClaim, error)
 	SPGetSubmission(id uint) (*contract.Submission, error)
@@ -38,6 +39,7 @@ type EmployeeServiceInterface interface {
 	SPGetIdentityEmployee(id uint) (*contract.IdentityReturn, error)
 	SPGetStatusTotal() (*contract.StatusTotalIdentity, error)
 	SPDownloadReport() *excelize.File
+	SPGetListSubmissionParam(page int, perPage int, name string) (*[]contract.ListSubmission, error)
 }
 
 func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *employeeService {
@@ -47,44 +49,38 @@ func NewEmployeeService(appConfig *config.Config, jwtClient jwt_client.JWTClient
 	}
 }
 
-func (s *employeeService) SPGetListSubmission(page string) (*[]contract.ListSubmission, error) {
+func (s *employeeService) SPGetListSubmission(page int) (*[]contract.ListSubmission, error) {
+	var ListSubmission []contract.ListSubmission
+	var List []contract.ListAll
+
+	namePersen := strings.Join([]string{"%", "", "%"}, "")
+
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-
-	pages, err := strconv.Atoi(page)
-
+	err := db.DbConnection.Raw("SELECT identities.id, identities.updated_at, identities.deleted_at, identities.id_cust, identities.nik, identities.nama_lengkap, identities.tempat_lahir, identities.tanggal_lahir, identities.alamat, identities.pekerjaan, identities.pendapatan_perbulan, identities.bukti_ktp, identities.bukti_gaji, identities.status, submissions.created_at, submissions.alamat_rumah, submissions.luas_tanah, submissions.harga_rumah, submissions.jangka_pembayaran, submissions.dokumen_pendukung, submissions.status_kelengkapan FROM identities LEFT JOIN submissions ON identities.id_cust = submissions.id_cust WHERE identities.nama_lengkap LIKE ? LIMIT ? offset ?", namePersen, 5, (page-1)*5).Find(&List).Error
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
-	var ListSubmission []contract.ListSubmission
-
-	for i := ((5 * pages) - 2); i < ((5 * pages) + 3); i++ {
-		var identity contract.Identity
-		var submission contract.Submission
-
-		err := db.DbConnection.Table("identities").Where("id_cust = ?", i).Find(&identity).Error
-		if identity.IdCust == 0 {
-			break
-		}
-		if err != nil {
-			break
-		}
-
-		er := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", identity.IdCust).Error
-		if er != nil {
+	for i, v := range List {
+		if v.StatusKelengkapan == "" {
+			tanggal := v.UpdatedAt.Format(time.RFC1123)
 			lsubmission := contract.ListSubmission{
-				TanggalPengajuan: identity.UpdatedAt,
-				NamaLengkap:      identity.NamaLengkap,
-				Status:           identity.Status,
+				Id:               uint(i + 1),
+				TanggalPengajuan: tanggal[:25],
+				NamaLengkap:      v.NamaLengkap,
+				Status:           v.Status,
 				Rekomendasi:      "-",
 			}
 			ListSubmission = append(ListSubmission, lsubmission)
 		} else {
+			tanggal := v.CreatedAt.Format(time.RFC1123)
 			lsubmission := contract.ListSubmission{
-				TanggalPengajuan: submission.UpdatedAt,
-				NamaLengkap:      identity.NamaLengkap,
-				Status:           identity.Status,
-				Rekomendasi:      Recommendation(&identity, &submission),
+				Id:               uint(i + 1),
+				TanggalPengajuan: tanggal[:25],
+				NamaLengkap:      v.NamaLengkap,
+				Status:           v.StatusKelengkapan,
+				Rekomendasi:      Recommendation(&v.PendapatanPerbulan, &v.HargaRumah, &v.JangkaPembayaran),
 			}
 			ListSubmission = append(ListSubmission, lsubmission)
 		}
@@ -92,11 +88,11 @@ func (s *employeeService) SPGetListSubmission(page string) (*[]contract.ListSubm
 	return &ListSubmission, nil
 }
 
-func Recommendation(identity *contract.Identity, submission *contract.Submission) string {
+func Recommendation(PendapatanPerbulan, HargaRumah *float64, JangkaPembayaran *uint) string {
 	var kemampuanCicilanPerbulan float64
 	var kenyataanCicilanPerbulan float64
-	kemampuanCicilanPerbulan = (identity.PendapatanPerbulan / 3)
-	kenyataanCicilanPerbulan = (submission.HargaRumah / float64(submission.JangkaPembayaran)) / 12
+	kemampuanCicilanPerbulan = (*PendapatanPerbulan / 3)
+	kenyataanCicilanPerbulan = (*HargaRumah / float64(*JangkaPembayaran)) / 12
 	if kemampuanCicilanPerbulan > kenyataanCicilanPerbulan {
 		return "Boleh"
 	}
@@ -155,36 +151,43 @@ func (s *employeeService) SPGetNumberOfPage() *contract.NumberOfPage {
 	return &count
 }
 
-func (s *employeeService) SPGetListByName(name string) *[]contract.ListSubmission {
-	var identity []contract.Identity
+func (s *employeeService) SPGetListByName(name string) (*[]contract.ListSubmission, error) {
 	var ListSubmission []contract.ListSubmission
-	var submission contract.Submission
+	var List []contract.ListAll
 
-	namePersen := fmt.Sprint("%" + name + "%")
+	namePersen := strings.Join([]string{"%", name, "%"}, "")
+
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-	db.DbConnection.Table("identities").Where("nama_lengkap LIKE ?", namePersen).Find(&identity)
+	err := db.DbConnection.Raw("SELECT identities.id, identities.updated_at, identities.deleted_at, identities.id_cust, identities.nik, identities.nama_lengkap, identities.tempat_lahir, identities.tanggal_lahir, identities.alamat, identities.pekerjaan, identities.pendapatan_perbulan, identities.bukti_ktp, identities.bukti_gaji, identities.status, submissions.created_at, submissions.alamat_rumah, submissions.luas_tanah, submissions.harga_rumah, submissions.jangka_pembayaran, submissions.dokumen_pendukung, submissions.status_kelengkapan FROM identities LEFT JOIN submissions ON identities.id_cust = submissions.id_cust WHERE identities.nama_lengkap LIKE ? LIMIT ? offset ?", namePersen, 30, 0).Find(&List).Error
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
 
-	for _, v := range identity {
-		er := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", v.IdCust).Error
-		if er != nil {
+	for i, v := range List {
+		if v.StatusKelengkapan == "" {
+			tanggal := v.UpdatedAt.Format(time.RFC1123)
 			lsubmission := contract.ListSubmission{
-				TanggalPengajuan: v.UpdatedAt,
+				Id:               uint(i + 1),
+				TanggalPengajuan: tanggal[:25],
 				NamaLengkap:      v.NamaLengkap,
 				Status:           v.Status,
 				Rekomendasi:      "-",
 			}
 			ListSubmission = append(ListSubmission, lsubmission)
 		} else {
+			tanggal := v.CreatedAt.Format(time.RFC1123)
 			lsubmission := contract.ListSubmission{
-				TanggalPengajuan: submission.UpdatedAt,
+				Id:               uint(i + 1),
+				TanggalPengajuan: tanggal[:25],
 				NamaLengkap:      v.NamaLengkap,
-				Status:           v.Status,
-				Rekomendasi:      Recommendation(&v, &submission),
+				Status:           v.StatusKelengkapan,
+				Rekomendasi:      Recommendation(&v.PendapatanPerbulan, &v.HargaRumah, &v.JangkaPembayaran),
 			}
 			ListSubmission = append(ListSubmission, lsubmission)
 		}
 	}
-	return &ListSubmission
+	return &ListSubmission, nil
 }
 
 func (s *employeeService) SPGetSubmission(id uint) (*contract.Submission, error) {
@@ -447,4 +450,75 @@ func (s *employeeService) SPDownloadReport() *excelize.File {
 	// 	println(err.Error())
 	// }
 	return f
+}
+
+func (s *employeeService) SPGetListSubmissionParam(pages int, perPage int, name string) (*[]contract.ListSubmission, error) {
+	var ListSubmission []contract.ListSubmission
+	var List []contract.ListAll
+
+	namePersen := strings.Join([]string{"%", name, "%"}, "")
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+	err := db.DbConnection.Raw("SELECT identities.id, identities.updated_at, identities.deleted_at, identities.id_cust, identities.nik, identities.nama_lengkap, identities.tempat_lahir, identities.tanggal_lahir, identities.alamat, identities.pekerjaan, identities.pendapatan_perbulan, identities.bukti_ktp, identities.bukti_gaji, identities.status, submissions.created_at, submissions.alamat_rumah, submissions.luas_tanah, submissions.harga_rumah, submissions.jangka_pembayaran, submissions.dokumen_pendukung, submissions.status_kelengkapan FROM identities LEFT JOIN submissions ON identities.id_cust = submissions.id_cust WHERE identities.nama_lengkap LIKE ? LIMIT ? offset ?", namePersen, perPage, (pages-1)*perPage).Find(&List).Error
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	for i, v := range List {
+		if v.StatusKelengkapan == "" {
+			tanggal := v.UpdatedAt.Format(time.RFC1123)
+			lsubmission := contract.ListSubmission{
+				Id:               uint(i + 1),
+				TanggalPengajuan: tanggal[:25],
+				NamaLengkap:      v.NamaLengkap,
+				Status:           v.Status,
+				Rekomendasi:      "-",
+			}
+			ListSubmission = append(ListSubmission, lsubmission)
+		} else {
+			tanggal := v.CreatedAt.Format(time.RFC1123)
+			lsubmission := contract.ListSubmission{
+				Id:               uint(i + 1),
+				TanggalPengajuan: tanggal[:25],
+				NamaLengkap:      v.NamaLengkap,
+				Status:           v.StatusKelengkapan,
+				Rekomendasi:      Recommendation(&v.PendapatanPerbulan, &v.HargaRumah, &v.JangkaPembayaran),
+			}
+			ListSubmission = append(ListSubmission, lsubmission)
+		}
+	}
+
+	// for i := ((5 * pages) - 2); i < ((5 * pages) + 3); i++ {
+	// 	var identity contract.Identity
+	// 	var submission contract.Submission
+
+	// 	err := db.DbConnection.Table("identities").Where("id_cust = ?", i).Find(&identity).Error
+	// 	if identity.IdCust == 0 {
+	// 		break
+	// 	}
+	// 	if err != nil {
+	// 		break
+	// 	}
+
+	// 	er := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", identity.IdCust).Error
+	// 	if er != nil {
+	// 		lsubmission := contract.ListSubmission{
+	// 			TanggalPengajuan: identity.UpdatedAt,
+	// 			NamaLengkap:      identity.NamaLengkap,
+	// 			Status:           identity.Status,
+	// 			Rekomendasi:      "-",
+	// 		}
+	// 		ListSubmission = append(ListSubmission, lsubmission)
+	// 	} else {
+	// 		lsubmission := contract.ListSubmission{
+	// 			TanggalPengajuan: submission.UpdatedAt,
+	// 			NamaLengkap:      identity.NamaLengkap,
+	// 			Status:           identity.Status,
+	// 			Rekomendasi:      Recommendation(&identity, &submission),
+	// 		}
+	// 		ListSubmission = append(ListSubmission, lsubmission)
+	// 	}
+	// }
+	return &ListSubmission, nil
 }

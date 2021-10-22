@@ -42,7 +42,14 @@ func GetListSubmission(employeeService service.EmployeeServiceInterface) http.Ha
 			return
 		}
 
-		dataService, err := employeeService.SPGetListSubmission(page)
+		pages, err := strconv.Atoi(page)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		dataService, err := employeeService.SPGetListSubmission(pages)
 
 		if err != nil {
 			log.Error(err)
@@ -114,7 +121,12 @@ func GetListByName(employeeService service.EmployeeServiceInterface) http.Handle
 			return
 		}
 
-		dataService := employeeService.SPGetListByName(name)
+		dataService, err := employeeService.SPGetListByName(name)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
 
 		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
@@ -526,5 +538,61 @@ func DownloadReport(employeeService service.EmployeeServiceInterface) http.Handl
 		// }
 		w.Header().Set("Content-Disposition", "attachment; filename="+string("Report_pengajuan_yang_disetujui.xlsx")+"")
 		f.Write(w)
+	}
+}
+
+func GetListSubmissionParam(employeeService service.EmployeeServiceInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		page := vars["page"]
+		perPage := vars["per_page"]
+		name := vars["name"]
+
+		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		if err != nil {
+			log.Warning(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		resp, err := employeeService.VerifyToken(tokenC)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		if resp.LoginAs != 2 {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
+			return
+		}
+		pages, err := strconv.Atoi(page)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		perPages, err := strconv.Atoi(perPage)
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		dataService, err := employeeService.SPGetListSubmissionParam(pages, perPages, name)
+
+		if err != nil {
+			log.Error(err)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
+			return
+		}
+
+		responder.NewHttpResponse(r, w, http.StatusOK, dataService, nil)
 	}
 }

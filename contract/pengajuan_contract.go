@@ -1,8 +1,6 @@
 package contract
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
@@ -22,10 +20,11 @@ type Identity struct {
 }
 
 type ListSubmission struct {
-	TanggalPengajuan time.Time `json:"tanggal_pengajuan"`
-	NamaLengkap      string    `json:"nama_lengkap"`
-	Status           string    `json:"status"`
-	Rekomendasi      string    `json:"rekomendasi"`
+	Id               uint   `json:"id"`
+	TanggalPengajuan string `json:"tanggal_pengajuan"`
+	NamaLengkap      string `json:"nama_lengkap"`
+	Status           string `json:"status"`
+	Rekomendasi      string `json:"rekomendasi"`
 }
 
 type IdentityReturn struct {
