@@ -257,25 +257,25 @@ func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multip
 	return fileLink
 }
 
-func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
-	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
-	fileName := strings.Join([]string{"bukti-endukung/", fileLink}, "")
+// func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+// 	idString := strconv.Itoa(int(resp.IdUser))
+// 	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
+// 	fileName := strings.Join([]string{"bukti-endukung/", fileLink}, "")
 
-	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+// 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
-	ctx := context.Background()
+// 	ctx := context.Background()
 
-	fileReader := io.Reader(*file)
-	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
-	if err != nil {
-		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
-	}
+// 	fileReader := io.Reader(*file)
+// 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
+// 	if err != nil {
+// 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
+// 		return "Error in uploading the file"
+// 	}
 
-	log.Printf("Uploading the file #%s succeeded!", fileName)
-	fmt.Println("UploadInfo:")
-	fmt.Printf("%+v\n", uploadInfo)
+// 	log.Printf("Uploading the file #%s succeeded!", fileName)
+// 	fmt.Println("UploadInfo:")
+// 	fmt.Printf("%+v\n", uploadInfo)
 
-	return fileLink
-}
+// 	return fileLink
+// }
