@@ -1,9 +1,10 @@
 package config
 
 import (
-	log "github.com/sirupsen/logrus"
+	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/subosito/gotenv"
 )
 
@@ -30,9 +31,8 @@ func Init() *Config {
 	defaultEnv := ".env"
 
 	if err := gotenv.Load(defaultEnv); err != nil {
-		log.Warning("failed load .env")
+		fmt.Println("failed load .env")
 	}
-
 	log.SetOutput(os.Stdout)
 
 	appConfig := &Config{

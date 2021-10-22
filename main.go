@@ -1,9 +1,10 @@
 package main
 
 import (
+	"os"
+
 	"github.com/rysmaadit/go-template/app"
 	"github.com/rysmaadit/go-template/cli"
-	"os"
 )
 
 func main() {

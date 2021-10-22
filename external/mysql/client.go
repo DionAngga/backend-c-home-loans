@@ -26,7 +26,7 @@ func (c *client) Ping() error {
 }
 
 func NewMysqlClient(config ClientConfig) *client {
-	connStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=UTC",
+	connStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		config.Username,
 		config.Password,
 		config.Host,

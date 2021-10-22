@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/minio/minio-go/v7"
@@ -30,10 +31,15 @@ type CustomerServiceInterface interface {
 	SCCreateIdentity(identity *contract.Identity, idCust uint) (*contract.IdentityReturn, error)
 	SCCreateSubmission(submission *contract.Submission, idCust uint) *contract.SubmissionReturn
 	SCGetSubmissionStatus(id uint) string
-	SCGetSubmission(id uint) (*contract.Submission, error)
-	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
-	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
-	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string
+	SCGetSubmission(id uint) (*contract.SubmissionReturn, error)
+	SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiKtpReturn, error)
+	SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiGajiReturn, error)
+	SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadDokumenPendukungReturn, error)
+	SCGetFileKtpCustomer(buktiKtp string) *minio.Object
+	SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object
+	SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object
+	SCGetIdentity(id uint) (*contract.IdentityReturn, error)
+	SCUpdateIdentityCustomer(identity *contract.Identity, id uint) (*contract.IdentityReturn, error)
 }
 
 func NewCustomerService(appConfig *config.Config, jwtClient jwt_client.JWTClientInterface) *customerService {
@@ -117,6 +123,7 @@ func (s *customerService) SCCreateIdentity(identity *contract.Identity, idCust u
 		Pekerjaan:          identity.Pekerjaan,
 		PendapatanPerbulan: identity.PendapatanPerbulan,
 		BuktiKtp:           identity.BuktiKtp,
+		BuktiGaji:          identity.BuktiGaji,
 		Status:             identity.Status,
 	}
 	return &pReturn, nil
@@ -132,6 +139,7 @@ func (s *customerService) SCCreateSubmission(submission *contract.Submission, id
 	db.DbConnection.Create(&submission)
 
 	kReturn := contract.SubmissionReturn{
+		IdKelengkapan:     submission.ID,
 		IdCust:            submission.IdCust,
 		IdPengajuan:       submission.IdPengajuan,
 		AlamatRumah:       submission.AlamatRumah,
@@ -145,14 +153,24 @@ func (s *customerService) SCCreateSubmission(submission *contract.Submission, id
 
 }
 
-func (s *customerService) SCGetSubmission(id uint) (*contract.Submission, error) {
+func (s *customerService) SCGetSubmission(id uint) (*contract.SubmissionReturn, error) {
 	var getSubmission contract.Submission
 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
 	err := db.DbConnection.Table("submissions").Last(&getSubmission, "id_pengajuan = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
-	return &getSubmission, nil
+	kReturn := contract.SubmissionReturn{
+		IdCust:            getSubmission.IdCust,
+		IdPengajuan:       getSubmission.IdPengajuan,
+		AlamatRumah:       getSubmission.AlamatRumah,
+		LuasTanah:         getSubmission.LuasTanah,
+		HargaRumah:        getSubmission.HargaRumah,
+		JangkaPembayaran:  getSubmission.JangkaPembayaran,
+		DokumenPendukung:  getSubmission.DokumenPendukung,
+		StatusKelengkapan: getSubmission.StatusKelengkapan,
+	}
+	return &kReturn, nil
 }
 
 func (s *customerService) SCGetSubmissionStatus(id uint) string {
@@ -165,9 +183,10 @@ func (s *customerService) SCGetSubmissionStatus(id uint) string {
 	return "Menu Submission visible(Menu able)"
 }
 
-func (s *customerService) SCUploadFile(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiKtpReturn, error) {
+	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, ".pdf"}, "")
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"ktp/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
@@ -178,65 +197,23 @@ func (s *customerService) SCUploadFile(file *multipart.File, handler *multipart.
 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
 	if err != nil {
 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
+		return nil, err
 	}
 
 	log.Printf("Uploading the file #%s succeeded!", fileName)
 	fmt.Println("UploadInfo:")
 	fmt.Printf("%+v\n", uploadInfo)
 
-	return fileLink
-}
-
-func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
-	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
-	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
-
-	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
-
-	ctx := context.Background()
-
-	fileReader := io.Reader(*file)
-	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
-	if err != nil {
-		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
+	uploadLink := contract.UploadBuktiKtpReturn{
+		BuktiKtp: fileLink,
 	}
-
-	log.Printf("Uploading the file #%s succeeded!", fileName)
-	fmt.Println("UploadInfo:")
-	fmt.Printf("%+v\n", uploadInfo)
-
-	return fileLink
+	return &uploadLink, nil
 }
 
-func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
+func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiGajiReturn, error) {
+	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, ".pdf"}, "")
-	fileName := strings.Join([]string{"ktp/", fileLink}, "")
-
-	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
-
-	ctx := context.Background()
-
-	fileReader := io.Reader(*file)
-	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
-	if err != nil {
-		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
-	}
-
-	log.Printf("Uploading the file #%s succeeded!", fileName)
-	fmt.Println("UploadInfo:")
-	fmt.Printf("%+v\n", uploadInfo)
-
-	return fileLink
-}
-
-func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
-	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"slip-gaji-", idString, "-", resp.Username, ".pdf"}, "")
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"slip-gaji/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
@@ -247,35 +224,151 @@ func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multip
 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
 	if err != nil {
 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-		return "Error in uploading the file"
+		return nil, err
 	}
 
 	log.Printf("Uploading the file #%s succeeded!", fileName)
 	fmt.Println("UploadInfo:")
 	fmt.Printf("%+v\n", uploadInfo)
 
-	return fileLink
+	uploadLink := contract.UploadBuktiGajiReturn{
+		BuktiGaji: fileLink,
+	}
+	return &uploadLink, nil
 }
 
-// func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) string {
-// 	idString := strconv.Itoa(int(resp.IdUser))
-// 	fileLink := strings.Join([]string{"bukti-pendukung-", idString, "-", resp.Username, ".pdf"}, "")
-// 	fileName := strings.Join([]string{"bukti-endukung/", fileLink}, "")
+func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadDokumenPendukungReturn, error) {
+	uploadTime := time.Now().Local().String()
+	idString := strconv.Itoa(int(resp.IdUser))
+	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
+	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
 
-// 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
-// 	ctx := context.Background()
+	ctx := context.Background()
 
-// 	fileReader := io.Reader(*file)
-// 	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
-// 	if err != nil {
-// 		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
-// 		return "Error in uploading the file"
-// 	}
+	fileReader := io.Reader(*file)
+	uploadInfo, err := mi.MinioClient.PutObject(ctx, mi.BucketName, fileName, fileReader, handler.Size, minio.PutObjectOptions{})
+	if err != nil {
+		log.Printf("Error in uploading the file #%s: %v.", fileName, err)
+		return nil, err
+	}
 
-// 	log.Printf("Uploading the file #%s succeeded!", fileName)
-// 	fmt.Println("UploadInfo:")
-// 	fmt.Printf("%+v\n", uploadInfo)
+	log.Printf("Uploading the file #%s succeeded!", fileName)
+	fmt.Println("UploadInfo:")
+	fmt.Printf("%+v\n", uploadInfo)
 
-// 	return fileLink
-// }
+	uploadLink := contract.UploadDokumenPendukungReturn{
+		DokumenPendukung: fileLink,
+	}
+	return &uploadLink, nil
+}
+
+func (s *customerService) SCGetFileKtpCustomer(buktiKtp string) *minio.Object {
+	fileName := strings.Join([]string{"ktp/", buktiKtp}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetFileBuktiGajiCustomer(buktiGaji string) *minio.Object {
+	fileName := strings.Join([]string{"slip-gaji/", buktiGaji}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetFilePendukungCustomer(buktiFilependukung string) *minio.Object {
+	fileName := strings.Join([]string{"bukti-pendukung/", buktiFilependukung}, "")
+	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
+
+	ctx := context.Background()
+	obj, err := mi.MinioClient.GetObject(ctx, mi.BucketName, fileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("Error in getting the object: %v.", err)
+		return nil
+	}
+	return obj
+}
+
+func (s *customerService) SCGetIdentity(id uint) (*contract.IdentityReturn, error) {
+
+	var getIdentity contract.Identity
+
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	err := db.DbConnection.Table("identities").Last(&getIdentity, "id_cust = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	rgetIdentity := contract.IdentityReturn{
+		IdCust:             getIdentity.IdCust,
+		Nik:                getIdentity.Nik,
+		NamaLengkap:        getIdentity.NamaLengkap,
+		TempatLahir:        getIdentity.TempatLahir,
+		TanggalLahir:       getIdentity.TanggalLahir,
+		Alamat:             getIdentity.Alamat,
+		Pekerjaan:          getIdentity.Pekerjaan,
+		PendapatanPerbulan: getIdentity.PendapatanPerbulan,
+		BuktiKtp:           getIdentity.BuktiKtp,
+		BuktiGaji:          getIdentity.BuktiGaji,
+		Status:             getIdentity.Status,
+	}
+	return &rgetIdentity, nil
+}
+
+func (s *customerService) SCUpdateIdentityCustomer(identity *contract.Identity, id uint) (*contract.IdentityReturn, error) {
+	db := mysql.NewMysqlClient(*mysql.MysqlInit())
+
+	var identityUpdates contract.Identity
+	identityUpdates.Nik = identity.Nik
+	identityUpdates.NamaLengkap = identity.NamaLengkap
+	identityUpdates.TempatLahir = identity.TempatLahir
+	identityUpdates.TanggalLahir = identity.TanggalLahir
+	identityUpdates.Alamat = identity.Alamat
+	identityUpdates.Pekerjaan = identity.Pekerjaan
+	identityUpdates.PendapatanPerbulan = identity.PendapatanPerbulan
+	identityUpdates.BuktiKtp = identity.BuktiKtp
+	identityUpdates.BuktiGaji = identity.BuktiGaji
+	identityUpdates.Status = "Menunggu Verifikasi"
+	var identityUp contract.Identity
+
+	err := db.DbConnection.Table("identities").Where("id_cust = ?", id).Find(&identityUp).Error
+
+	if err != nil {
+		return nil, err
+	}
+	err = db.DbConnection.Model(&identityUp).Updates(identityUpdates).Error
+	if err != nil {
+		return nil, err
+	}
+
+	ureturn := contract.IdentityReturn{
+		Id:                 identityUp.ID,
+		IdCust:             identityUp.IdCust,
+		Nik:                identityUpdates.Nik,
+		NamaLengkap:        identityUpdates.NamaLengkap,
+		TempatLahir:        identityUpdates.TempatLahir,
+		TanggalLahir:       identityUpdates.TanggalLahir,
+		Alamat:             identityUpdates.Alamat,
+		Pekerjaan:          identityUpdates.Pekerjaan,
+		PendapatanPerbulan: identityUpdates.PendapatanPerbulan,
+		BuktiKtp:           identityUpdates.BuktiKtp,
+		BuktiGaji:          identityUpdates.BuktiGaji,
+		Status:             identityUp.Status,
+	}
+	return &ureturn, nil
+}
