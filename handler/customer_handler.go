@@ -17,6 +17,8 @@ func GetCheckApply(customerService service.CustomerServiceInterface) http.Handle
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -40,6 +42,8 @@ func GetCheckApply(customerService service.CustomerServiceInterface) http.Handle
 func CreateIdentity(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if err != nil {
 			log.Warning(err)
@@ -84,6 +88,8 @@ func CreateSubmission(customerService service.CustomerServiceInterface) http.Han
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -121,6 +127,8 @@ func GetSubmissionCustomer(customerService service.CustomerServiceInterface) htt
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -150,6 +158,8 @@ func GetSubmissionStatus(customerService service.CustomerServiceInterface) http.
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -172,6 +182,8 @@ func GetSubmissionStatus(customerService service.CustomerServiceInterface) http.
 func UploadFileKtp(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if err != nil {
 			log.Warning(err)
@@ -212,6 +224,8 @@ func UploadFileGaji(customerService service.CustomerServiceInterface) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -251,6 +265,8 @@ func UploadFilePendukung(customerService service.CustomerServiceInterface) http.
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -289,6 +305,8 @@ func UploadFilePendukung(customerService service.CustomerServiceInterface) http.
 func GetFileKtpCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if err != nil {
 			log.Warning(err)
@@ -333,6 +351,8 @@ func GetFileBuktiGajiCustomer(customerService service.CustomerServiceInterface) 
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -376,6 +396,8 @@ func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) 
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)
@@ -417,6 +439,8 @@ func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) 
 func GetIdentityCustomer(customerService service.CustomerServiceInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if err != nil {
 			log.Warning(err)
