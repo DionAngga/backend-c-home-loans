@@ -238,6 +238,11 @@ func PostIdentityStatus(petugasService service.EmployeeServiceInterface) http.Ha
 
 		// w.Header().Set("Access-Control-Allow-Origin", "*")
 
+		header := w.Header()
+		header.Add("Access-Control-Allow-Origin", "*")
+		header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+		header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+
 		if err != nil {
 			log.Warning(err)
 			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, err)

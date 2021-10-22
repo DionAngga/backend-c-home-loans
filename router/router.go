@@ -14,7 +14,7 @@ import (
 func NewRouter(dependencies service.Dependencies) http.Handler {
 	r := mux.NewRouter()
 	// r.Use(accessControlMiddleware)
-	// r.Use(mux.CORSMethodMiddleware(r))
+	r.Use(mux.CORSMethodMiddleware(r))
 
 	setHomeRouter(r)
 	setAuthRouter(r, dependencies.AuthService)
@@ -27,11 +27,11 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 	// originsOK := handlers.AllowedOrigins([]string{"*"})
 	// methodsOK := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
 
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{`*`})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	// headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	// originsOk := handlers.AllowedOrigins([]string{"*"})
+	// methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	loggedRouter := handlers.LoggingHandler(os.Stdout, handlers.CORS(headersOk, originsOk, methodsOk)(r))
+	loggedRouter := handlers.LoggingHandler(os.Stderr, r)
 	return loggedRouter
 }
 
