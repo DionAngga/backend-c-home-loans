@@ -236,12 +236,14 @@ func PostIdentityStatus(petugasService service.EmployeeServiceInterface) http.Ha
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
-		// w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
 
-		header := w.Header()
-		header.Add("Access-Control-Allow-Origin", "*")
-		header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-		header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+		// header := w.Header()
+		// header.Add("Access-Control-Allow-Origin", "*")
+		// header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+		// header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 
 		if err != nil {
 			log.Warning(err)

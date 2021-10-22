@@ -14,7 +14,7 @@ import (
 func NewRouter(dependencies service.Dependencies) http.Handler {
 	r := mux.NewRouter()
 	// r.Use(accessControlMiddleware)
-	r.Use(mux.CORSMethodMiddleware(r))
+	// r.Use(mux.CORSMethodMiddleware(r))
 
 	setHomeRouter(r)
 	setAuthRouter(r, dependencies.AuthService)
