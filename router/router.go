@@ -13,8 +13,6 @@ import (
 
 func NewRouter(dependencies service.Dependencies) http.Handler {
 	r := mux.NewRouter()
-	// r.Use(accessControlMiddleware)
-	// r.Use(mux.CORSMethodMiddleware(r))
 
 	setHomeRouter(r)
 	setAuthRouter(r, dependencies.AuthService)
@@ -23,31 +21,9 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 	setCustomerRouter(r, dependencies.CustomerService)
 	setEmployeeRouter(r, dependencies.EmployeeService)
 
-	// headersOK := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
-	// originsOK := handlers.AllowedOrigins([]string{"*"})
-	// methodsOK := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
-
-	// headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	// originsOk := handlers.AllowedOrigins([]string{"*"})
-	// methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-
 	loggedRouter := handlers.LoggingHandler(os.Stderr, r)
 	return loggedRouter
 }
-
-// func accessControlMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		w.Header().Set("Access-Control-Allow-Origin", "*")
-// 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS,PUT")
-// 		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
-
-// 		if r.Method == "OPTIONS" {
-// 			return
-// 		}
-
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
 
 func setHomeRouter(router *mux.Router) {
 	router.Methods(http.MethodGet).Path("/").Handler(handler.Home())
@@ -98,37 +74,3 @@ func setEmployeeRouter(router *mux.Router, dependencies service.EmployeeServiceI
 	router.Methods(http.MethodGet).Path("/downloadreport").Handler(handler.DownloadReport(dependencies))
 	router.Methods(http.MethodGet).Path("/listsubmission").Handler(handler.GetListSubmissionParam(dependencies)).Queries("page", "{page}", "per_page", "{per_page}", "name", "{name}")
 }
-
-// package router
-
-// import (
-// 	"net/http"
-// 	"os"
-
-// 	"github.com/rysmaadit/go-template/handler"
-// 	"github.com/rysmaadit/go-template/service"
-
-// 	"github.com/gorilla/handlers"
-// 	"github.com/gorilla/mux"
-// )
-
-// func NewRouter(dependencies service.Dependencies) http.Handler {
-// 	r := mux.NewRouter()
-
-// 	setAuthRouter(r, dependencies.AuthService)
-// 	setCheckRouter(r, dependencies.CheckService)
-
-// 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
-// 	return loggedRouter
-// }
-
-// func setAuthRouter(router *mux.Router, dependencies service.AuthServiceInterface) {
-// 	router.Methods(http.MethodGet).Path("/auth/token").Handler(handler.GetToken(dependencies))
-// 	router.Methods(http.MethodPost).Path("/auth/token/validate").Handler(handler.ValidateToken(dependencies))
-// }
-
-// func setCheckRouter(router *mux.Router, checkService service.CheckService) {
-// 	router.Methods(http.MethodGet).Path("/check/redis").Handler(handler.CheckRedis(checkService))
-// 	router.Methods(http.MethodGet).Path("/check/mysql").Handler(handler.CheckMysql(checkService))
-// 	router.Methods(http.MethodGet).Path("/check/minio").Handler(handler.CheckMinio(checkService))
-// }
