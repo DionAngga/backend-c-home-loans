@@ -47,15 +47,15 @@ func Login(userService service.UserServiceInterface) http.HandlerFunc {
 		// w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE")
 		// w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")\
 
-		header := w.Header()
-		header.Add("Access-Control-Allow-Origin", "*")
-		header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-		header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
+		// header := w.Header()
+		// header.Add("Access-Control-Allow-Origin", "*")
+		// header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
+		// header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
 
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+		// if r.Method == "OPTIONS" {
+		// 	w.WriteHeader(http.StatusOK)
+		// 	return
+		// }
 
 		payloads, err := ioutil.ReadAll(r.Body)
 
