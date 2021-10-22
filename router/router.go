@@ -28,10 +28,10 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 	// methodsOK := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
 
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{"*"})
+	originsOk := handlers.AllowedOrigins([]string{`*`})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	loggedRouter := handlers.LoggingHandler(os.Stderr, handlers.CORS(headersOk, originsOk, methodsOk)(r))
+	loggedRouter := handlers.LoggingHandler(os.Stdout, handlers.CORS(headersOk, originsOk, methodsOk)(r))
 	return loggedRouter
 }
 
