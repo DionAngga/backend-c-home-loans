@@ -184,7 +184,7 @@ func PostSubmissionStatus(employeeService service.EmployeeServiceInterface) http
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if err != nil {
 			log.Warning(err)
@@ -236,7 +236,7 @@ func PostIdentityStatus(petugasService service.EmployeeServiceInterface) http.Ha
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenC, err := contract.NewValidateTokenRequestViaCookie(r)
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if err != nil {
 			log.Warning(err)
