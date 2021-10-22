@@ -501,6 +501,15 @@ func UpdateIdentityCustomer(customerService service.CustomerServiceInterface) ht
 		var updateIdentity contract.Identity
 		json.Unmarshal(payloads, &updateIdentity)
 
+		validate := validator.New()
+		error := validate.Struct(updateIdentity)
+
+		if error != nil {
+			log.Warning(error)
+			responder.NewHttpResponse(r, w, http.StatusBadRequest, nil, error)
+			return
+		}
+
 		dataService, err := customerService.SCUpdateIdentityCustomer(&updateIdentity, resp.IdUser)
 
 		if err != nil {
