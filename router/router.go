@@ -23,11 +23,12 @@ func NewRouter(dependencies service.Dependencies) http.Handler {
 	setCustomerRouter(r, dependencies.CustomerService)
 	setEmployeeRouter(r, dependencies.EmployeeService)
 
-	headersOK := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
-	originsOK := handlers.AllowedOrigins([]string{"*"})
-	methodsOK := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
+	// headersOK := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	// originsOK := handlers.AllowedOrigins([]string{"*"})
+	// methodsOK := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
 
-	loggedRouter := handlers.LoggingHandler(os.Stderr, handlers.CORS(headersOK, originsOK, methodsOK)(r))
+	// loggedRouter := handlers.LoggingHandler(os.Stderr, handlers.CORS(headersOK, originsOK, methodsOK)(r))
+	loggedRouter := handlers.LoggingHandler(os.Stderr, r)
 	return loggedRouter
 }
 
