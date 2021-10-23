@@ -50,16 +50,8 @@ func NewValidateTokenRequest(r *http.Request) (*ValidateTokenRequestContract, er
 
 func NewValidateTokenRequestViaCookie(r *http.Request) (*ValidateTokenRequestContract, error) {
 	validateTokenContract := new(ValidateTokenRequestContract)
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			log.Warning(err)
-			return nil, errors.NewUnauthorizedError("error no token in cookie")
-		}
-		return nil, errors.NewBadRequestError(err)
-	}
 
-	validateTokenContract.Token = cookie.Value
+	validateTokenContract.Token = r.Header["Authorization"][1]
 
 	validate := validator.New()
 	util.UseJsonFieldValidation(validate)
