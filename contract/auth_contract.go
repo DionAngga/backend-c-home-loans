@@ -51,7 +51,11 @@ func NewValidateTokenRequest(r *http.Request) (*ValidateTokenRequestContract, er
 func NewValidateTokenRequestViaCookie(r *http.Request) (*ValidateTokenRequestContract, error) {
 	validateTokenContract := new(ValidateTokenRequestContract)
 
-	validateTokenContract.Token = r.Header["Authorization"][0][7:]
+	token := r.Header["Authorization"]
+	if token == nil {
+		return nil, errors.New("No token in Headers")
+	}
+	validateTokenContract.Token = token[0][7:]
 
 	if validateTokenContract.Token == "" {
 		return nil, errors.New("No token in Headers")
