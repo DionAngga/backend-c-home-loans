@@ -51,7 +51,7 @@ func NewValidateTokenRequest(r *http.Request) (*ValidateTokenRequestContract, er
 func NewValidateTokenRequestViaCookie(r *http.Request) (*ValidateTokenRequestContract, error) {
 	validateTokenContract := new(ValidateTokenRequestContract)
 
-	validateTokenContract.Token = r.Header["Authorization"][1]
+	validateTokenContract.Token = r.Header["Authorization"][0][7:]
 
 	validate := validator.New()
 	util.UseJsonFieldValidation(validate)
