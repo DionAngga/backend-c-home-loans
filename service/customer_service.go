@@ -188,6 +188,7 @@ func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipa
 	idString := strconv.Itoa(int(resp.IdUser))
 	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"ktp/", fileLink}, "")
+	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
@@ -205,7 +206,7 @@ func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipa
 	fmt.Printf("%+v\n", uploadInfo)
 
 	uploadLink := contract.UploadBuktiKtpReturn{
-		BuktiKtp: fileLink,
+		BuktiKtp: link,
 	}
 	return &uploadLink, nil
 }
@@ -213,8 +214,9 @@ func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipa
 func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadBuktiGajiReturn, error) {
 	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
+	fileLink := strings.Join([]string{"gaji-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"slip-gaji/", fileLink}, "")
+	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
@@ -232,7 +234,7 @@ func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multip
 	fmt.Printf("%+v\n", uploadInfo)
 
 	uploadLink := contract.UploadBuktiGajiReturn{
-		BuktiGaji: fileLink,
+		BuktiGaji: link,
 	}
 	return &uploadLink, nil
 }
@@ -240,8 +242,9 @@ func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multip
 func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *multipart.FileHeader, resp *contract.JWTMapClaim) (*contract.UploadDokumenPendukungReturn, error) {
 	uploadTime := time.Now().Local().String()
 	idString := strconv.Itoa(int(resp.IdUser))
-	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
+	fileLink := strings.Join([]string{"pendukung-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
+	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
@@ -259,7 +262,7 @@ func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *m
 	fmt.Printf("%+v\n", uploadInfo)
 
 	uploadLink := contract.UploadDokumenPendukungReturn{
-		DokumenPendukung: fileLink,
+		DokumenPendukung: link,
 	}
 	return &uploadLink, nil
 }

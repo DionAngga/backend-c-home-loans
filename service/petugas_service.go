@@ -347,64 +347,6 @@ func (s *employeeService) SPGetStatusTotal() (*contract.StatusTotalIdentity, err
 	return &rgetStatusTotal, nil
 }
 
-// func (s *employeeService) SPDownloadReport() *[]byte {
-// 	var ListAccepted []contract.ListAccepted
-// 	db := mysql.NewMysqlClient(*mysql.MysqlInit())
-// 	err := db.DbConnection.Raw("SELECT * FROM identities cross JOIN submissions WHERE identities.id_cust = submissions.id_cust AND submissions.status_kelengkapan = ?", "Disetujui").Find(&ListAccepted).Error
-// 	if err != nil {
-// 		return nil
-// 	}
-// 	// jsonFile, err := os.Open("download_report.json")
-
-// 	// if err != nil {
-// 	// 	fmt.Println(err)
-// 	// }
-// 	// fmt.Println("Successfully Opened download_report.json")
-// 	// defer jsonFile.Close()
-// 	// data, _ := ioutil.ReadAll(jsonFile)
-
-// 	// var downloadreport []contract.ListAccepted
-// 	// err = json.Unmarshal([]byte(data), &jsonFile)
-// 	// if err != nil {
-// 	// 	fmt.Println(err)
-// 	// }
-// 	csvFile, err := os.Create("./datareport.csv")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	defer csvFile.Close()
-// 	writer := csv.NewWriter(csvFile)
-// 	for _, dr := range ListAccepted {
-// 		var row []string
-// 		row = append(row, strconv.FormatUint(uint64(dr.IdCust), 10))
-// 		row = append(row, dr.Nik)
-// 		row = append(row, dr.NamaLengkap)
-// 		row = append(row, dr.TempatLahir)
-// 		row = append(row, dr.TanggalLahir)
-// 		row = append(row, dr.Alamat)
-// 		row = append(row, dr.Pekerjaan)
-// 		row = append(row, strconv.FormatFloat(3.1415, byte(dr.PendapatanPerbulan), -1, 64))
-// 		row = append(row, dr.BuktiKtp)
-// 		row = append(row, dr.BuktiGaji)
-// 		row = append(row, dr.Status)
-// 		row = append(row, dr.AlamatRumah)
-// 		row = append(row, strconv.FormatFloat(3.1415, byte(dr.LuasTanah), -1, 64))
-// 		row = append(row, strconv.FormatFloat(3.1415, byte(dr.HargaRumah), -1, 64))
-// 		row = append(row, strconv.FormatUint(uint64(dr.JangkaPembayaran), 10))
-// 		row = append(row, dr.DokumenPendukung)
-// 		row = append(row, dr.StatusKelengkapan)
-// 		writer.Write(row)
-// 	}
-// 	// remember to flush!
-// 	writer.Flush()
-
-// 	data, err := ioutil.ReadFile("./datareport.csv")
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	return &data
-// }
-
 func (s *employeeService) SPDownloadReport() *excelize.File {
 	f := excelize.NewFile()
 	var ListAccepted []contract.ListAccepted
@@ -488,37 +430,5 @@ func (s *employeeService) SPGetListSubmissionParam(pages int, perPage int, name 
 			ListSubmission = append(ListSubmission, lsubmission)
 		}
 	}
-
-	// for i := ((5 * pages) - 2); i < ((5 * pages) + 3); i++ {
-	// 	var identity contract.Identity
-	// 	var submission contract.Submission
-
-	// 	err := db.DbConnection.Table("identities").Where("id_cust = ?", i).Find(&identity).Error
-	// 	if identity.IdCust == 0 {
-	// 		break
-	// 	}
-	// 	if err != nil {
-	// 		break
-	// 	}
-
-	// 	er := db.DbConnection.Table("submissions").Last(&submission, "id_cust = ?", identity.IdCust).Error
-	// 	if er != nil {
-	// 		lsubmission := contract.ListSubmission{
-	// 			TanggalPengajuan: identity.UpdatedAt,
-	// 			NamaLengkap:      identity.NamaLengkap,
-	// 			Status:           identity.Status,
-	// 			Rekomendasi:      "-",
-	// 		}
-	// 		ListSubmission = append(ListSubmission, lsubmission)
-	// 	} else {
-	// 		lsubmission := contract.ListSubmission{
-	// 			TanggalPengajuan: submission.UpdatedAt,
-	// 			NamaLengkap:      identity.NamaLengkap,
-	// 			Status:           identity.Status,
-	// 			Rekomendasi:      Recommendation(&identity, &submission),
-	// 		}
-	// 		ListSubmission = append(ListSubmission, lsubmission)
-	// 	}
-	// }
 	return &ListSubmission, nil
 }
