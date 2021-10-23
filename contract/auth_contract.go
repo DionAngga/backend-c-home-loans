@@ -53,6 +53,10 @@ func NewValidateTokenRequestViaCookie(r *http.Request) (*ValidateTokenRequestCon
 
 	validateTokenContract.Token = r.Header["Authorization"][0][7:]
 
+	if validateTokenContract.Token == "" {
+		return nil, errors.New("No token in Headers")
+	}
+
 	validate := validator.New()
 	util.UseJsonFieldValidation(validate)
 
