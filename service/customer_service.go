@@ -188,7 +188,7 @@ func (s *customerService) SCUploadFileKTP(file *multipart.File, handler *multipa
 	idString := strconv.Itoa(int(resp.IdUser))
 	fileLink := strings.Join([]string{"ktp-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"ktp/", fileLink}, "")
-	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/", fileLink}, "")
+	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/cgetfilektp/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
@@ -216,7 +216,7 @@ func (s *customerService) SCUploadFileGaji(file *multipart.File, handler *multip
 	idString := strconv.Itoa(int(resp.IdUser))
 	fileLink := strings.Join([]string{"gaji-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"slip-gaji/", fileLink}, "")
-	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/", fileLink}, "")
+	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/cgetfilegaji/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 
@@ -244,7 +244,7 @@ func (s *customerService) SCUploadFilePendukung(file *multipart.File, handler *m
 	idString := strconv.Itoa(int(resp.IdUser))
 	fileLink := strings.Join([]string{"pendukung-", idString, "-", resp.Username, uploadTime[:10], "-", uploadTime[11:22], ".pdf"}, "")
 	fileName := strings.Join([]string{"bukti-pendukung/", fileLink}, "")
-	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/", fileLink}, "")
+	link := strings.Join([]string{"http://backend-c-home-loans.digitalent.rakamin.com/cgetfilependukung/", fileLink}, "")
 
 	mi := miniopkg.NewMinioClient(*miniopkg.MinioInit())
 

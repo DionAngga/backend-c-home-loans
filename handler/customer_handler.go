@@ -322,7 +322,7 @@ func GetFileKtpCustomer(customerService service.CustomerServiceInterface) http.H
 			return
 		}
 
-		if resp.LoginAs != 1 {
+		if resp.LoginAs != 1 && resp.LoginAs != 2 {
 			log.Error(err)
 			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
 			return
@@ -367,7 +367,7 @@ func GetFileBuktiGajiCustomer(customerService service.CustomerServiceInterface) 
 			return
 		}
 
-		if resp.LoginAs != 1 {
+		if resp.LoginAs != 1 && resp.LoginAs != 2 {
 			log.Error(err)
 			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
 			return
@@ -412,7 +412,7 @@ func GetFilePendukungCustomer(customerService service.CustomerServiceInterface) 
 			return
 		}
 
-		if resp.LoginAs != 1 {
+		if resp.LoginAs != 1 && resp.LoginAs != 2 {
 			log.Error(err)
 			responder.NewHttpResponse(r, w, http.StatusUnauthorized, nil, err)
 			return
